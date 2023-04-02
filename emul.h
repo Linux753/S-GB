@@ -1,32 +1,60 @@
 #ifndef EMUL_H
 #define EMUL_H
 
+
+
 #define MEMORY_SIZE 65536
-#define CURSOR0 0x0000
-#define OPCODE_NB 80
-//#define STACK_SIZE 16
+#define CURSOR0 TODO
+#define OPCODE_NB TODO
+#define REGISTER8_SIZE 8
+#define REGISTER16_SIZE 6
+#define STACK_POINTER 8
+#define PROGRAM_COUNTER 10
+#define FLAGS 1
+//CPU 16 bit Register names
+#define AF 0
+#define BC 1
+#define DE 2
+#define HL 3
+//CPU 8 bit Register names
+#define A 0
+#define B 2
+#define C 3
+#define D 4
+#define E 5
+#define H 6
+#define L 7
 
-#define PIXEL_DIM 4
-#define PIXEL_BY_WIDTH 320
-#define PIXEL_BY_HEIGHT 240
-#define SCREEN_WIDTH PIXEL_BY_WIDTH*PIXEL_DIM
-#define SCREEN_HEIGHT PIXEL_BY_HEIGHT*PIXEL_DIM
+#define combineByte(LL, HH) (((uint16_t) (LL)) | (((uint16_t) (HH))<<8))
+#define extractBits(p, extractor) (((*(p))&((extractor)->mask))>>(extractor->dec)) 
 
-#define PALETTE_SIZE 16
+/////////////Screen constant and register address///////////////////
+//#define PIXEL_DIM 4
+//#define PIXEL_BY_WIDTH 320
+//#define PIXEL_BY_HEIGHT 240
+//#define SCREEN_WIDTH PIXEL_BY_WIDTH*PIXEL_DIM
+//#define SCREEN_HEIGHT PIXEL_BY_HEIGHT*PIXEL_DIM
+//#define PALETTE_SIZE 16
+//#define SPF 16 //Ms by frame
+//#define FREQUENCY 1000 //Expressed in ms^-1
+#define RENDER_OAM 0xFE00
+#define RENDER_OAMSIZE 0xA0
+#define RENDER_SPRITETD 0x8000
+#define RENDER_SPRITETDSIZE 0x1000
 
-#define SPF 16 //Ms by frame
-#define FREQUENCY 1000 //Expressed in ms^-1
+
+
 
 #define CONTROL1_ADD 0xFFF0
 #define CONTROL2_ADD 0xFFF2
 #define STACK_INIT_ADD 0xFDF0
-
 #define INPUT_NB 16
 
-#define extractBits(p, extractor) (((*(p))&((extractor)->mask))>>(extractor->dec)) 
-//#define writeBits(p, extractor, val) ((*(p)) |= ) useless
 
-//Sound control register
+
+
+
+////////////////Sound register address////////////////////////
 #define SOUND_ON 0xFF26
 #define SOUND_PANNING 0xFF25
 #define SOUND_MASTER 0xFF24
@@ -55,6 +83,8 @@
 #define SOUND_CH4FREQ 0xFF22
 #define SOUND_CH4CTRL 0xFF23
 
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -79,26 +109,31 @@ struct SJump{
 
 struct cpuGb{
     uint8_t mem[MEMORY_SIZE]; //Memory size to adjust !!!
-    uint16_t pc;
-    int16_t reg[16];;
+    uint8_t reg[REGISTER16_SIZE * 2]; 
+    uint16_t * reg16;
 
-    uint16_t sp;
+    uint16_t * sp;
+    uint16_t * pc;
 
-    uint8_t C;
-    uint8_t Z;
-    uint8_t O;
-    uint8_t N;
+    uint8_t * flags;
+    struct Ext8bit z; //Zero flag
+    struct Ext8bit n; //Substraction flag
+    struct Ext8bit h; //Half Carry Flag
+    struct Ext8bit c; //Carry Flag
 };
 
-struct ScreenRegister{
-    
-    uint8_t spritew; 
-    uint8_t spriteh;
-    
-    bool hflip;
-    bool vflip;
+struct PPU{
+    //Bg & Window 
+    uint8_t * vramTD; //VRAM Tiles Data
+    size_t sizeVramTD;
+    uint8_t * vramTM; //VRAM Tiles Map
+    size_t sizeVramTM;
 
-    bool vblank;
+    //Sprite:
+    uint8_t * spriteTD; //Sprites Tiles Data
+    size_t sizeSpriteTD;
+    uint8_t * OAM; //Object Attributes Memory
+    size_t sizeOAM;
 };
 
 struct Screen{
@@ -114,8 +149,6 @@ struct Screen{
     uint8_t bg;
     uint8_t fg[PIXEL_BY_WIDTH][PIXEL_BY_HEIGHT];
 
-    struct ScreenRegister reg;
-
     SDL_Color palette[PALETTE_SIZE];
 };
 
@@ -130,7 +163,28 @@ struct Control{
     uint16_t * control2;
 };
 
+struct DACChannel{ //Structure used by Pa to produce sound
+    bool on;
+    
+    //Info on the wave boocling
+    int16_t * wave;
+    int phase;
+    int phaseMax; //Size of the wave array
+
+    //Info on the channel playing, used to simulate the length timer
+    unsigned long int i; 
+    unsigned long endI;
+    
+
+    //Channel Volume
+    /*float volumeLeft;
+    float volumeRight;*/
+};
+
 struct Channel4{
+    struct DACChannel DAC;
+
+    /////Register/////
     //Length timer
     uint8_t * length;
     struct Ext8bit lengthTime;
@@ -154,8 +208,11 @@ struct Channel4{
 };
 
 struct Channel3{
+    struct DACChannel DAC;
+
+    /////Register/////
     //DAC Enable
-    uint8_t * dac;
+    uint8_t * dacPtr;
     struct Ext8bit dacEnbl;
 
     //Length timer
@@ -181,11 +238,9 @@ struct Channel3{
 };
 
 struct Channel2{
-    //Info on the wave boocling (?? does this verbs really exist??)
-    int16_t * wave;
-    int phase;
-    int phaseMax;
+    struct DACChannel DAC;
 
+    /////Register/////
     //Channel length & duty cycle
     uint8_t * dutyLength;
     struct Ext8bit duty;
@@ -206,22 +261,9 @@ struct Channel2{
 };
 
 struct Channel1{
-    bool on;
-    
-    //Info on the wave boocling (?? does this verbs really exist??)
-    int16_t * wave;
-    int phase;
-    int phaseMax; //Size of the wave array
+    struct DACChannel DAC;
 
-    //Info on the channel playing
-    /*unsigned long int i; 
-    unsigned long endI;*/
-    
-
-    //Channel Volume
-    /*float volumeLeft;
-    float volumeRight;*/
-
+    /////Register/////
     //Channel wave sweep
     uint8_t * waveSweep;
     struct Ext8bit waveSweepPace;
@@ -248,39 +290,16 @@ struct Channel1{
 };
 
 struct Sound{
-    /*uint8_t * on;
-
     PaStream * stream;
     const PaStreamInfo * streamInfo;
-    
-    bool advSound;
 
-    unsigned int attackTable[16];
-    PaTime attackEndTime; 
-    unsigned long attackEndI;
-    float slopeAttack;
+    //Sound channel
+    struct Channel1 ch1;
+    struct Channel2 ch2;
+    struct Channel3 ch3;
+    struct Channel4 ch4;
 
-    unsigned int decayTable[16];
-    PaTime decayEndTime;
-    unsigned long decayEndI;
-    float slopeDecay;
-
-    unsigned int releaseTable[16];
-    PaTime releaseBegTime;
-    unsigned long releaseBegI;
-    float slopeRelease;
-
-    unsigned long int i; 
-    unsigned long endI;
-
-    int16_t * wave;
-    int phase;
-    int phaseMax; //Size of the wave array
-
-    float volume;
-    float sustain;
-    uint8_t type;*/
-
+    ///////General sound register /////////
     //On/Off
     uint8_t * on;
     struct Ext8bit onGlobal;
@@ -312,7 +331,10 @@ struct Chip16{
     struct cpuGb cpu;
     struct Screen screen;
     struct Control control;
-    struct Sound sound;
+
+    //Rendering    
+    struct PPU ppu; //Picture Processing Unit : struct managing registers relative to the rendering
+    struct Screen screen; //struct managing the rendering of the emulator in itself
 
     struct SJump jumpTable;
     void (*opcodeFcts[OPCODE_NB])(struct Chip16 *, uint8_t, uint8_t, uint8_t);

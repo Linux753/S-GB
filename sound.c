@@ -85,7 +85,7 @@ void soundCh2SetExtractor(struct cpuGb * cpu, struct Channel2* channel){
 
 void soundCh3SetExtractor(struct cpuGb * cpu, struct Channel3* channel){
     //DAC Enable
-    channel->dac= &(cpu->mem[SOUND_CH3DACENBL]);
+    channel->dacPtr= &(cpu->mem[SOUND_CH3DACENBL]);
     channel->dacEnbl = (struct Ext8bit) {.mask=255, .dec=7};
 
     //Length timer
