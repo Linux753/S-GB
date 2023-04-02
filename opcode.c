@@ -95,3 +95,40 @@ void opcode_LD_A_HLp(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00101010 / 2 c
 void opcode_LD_HLp_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00100010 / 2 cycle
     writeToAdd(cpu, cpu->reg16[HL]++, cpu->reg[A]);
 }
+
+//Load 16 bit register
+void opcode_LD_X_nn(struct cpuGb* cpu, uint8_t a){// 3 byte / 0b00xx0001 / 3 cycle
+    uint8_t LL = readNext(cpu);
+    uint8_t HH = readNext(cpu);
+    uint8_t x = (0b00110000&a)>>4;
+
+    cpu->reg16[x] = combineByte(LL, HH);
+}
+
+void opcode_LD_nn_SP(struct cpuGb* cpu, uint8_t a){//3 byte / 0b00001000 / 5 cycle
+    uint8_t LL = readNext(cpu);
+    uint8_t HH = readNext(cpu);
+    
+    uint16_t add = combineByte(LL, HH);
+
+    writeToAdd(cpu, add, getLowByte(cpu->reg16[SP]));
+    writeToAdd(cpu, add+1, getHighByte(cpu->reg16[SP]));
+}
+
+void opcode_LD_SP_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0xF9 /2 cycle
+    cpu->reg16[SP] = cpu->reg16[HL];
+}
+
+void opcode_PUSH_X(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11xx0101 / 4 cycle
+    uint8_t x = (0b00110000&a)>>4;
+    
+    writeToAdd(cpu, --cpu->reg16[SP], getHighByte(cpu->reg16[x]));
+    writeToAdd(cpu, --cpu->reg16[SP], getLowByte(cpu->reg16[x]));
+}
+
+void opcode_POP_X(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11xx0001 / 4 cycle
+    uint8_t x = (0b00110000&a)>>4;
+
+    cpu->reg[x] = combineByte(readFromAdd(cpu, cpu->reg[SP]++),
+                                readFromAdd(cpu, cpu->reg[SP]++));
+}

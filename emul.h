@@ -16,6 +16,8 @@
 #define BC 1
 #define DE 2
 #define HL 3
+#define SP 4
+#define PC 5
 //CPU 8 bit Register names
 #define A 0
 #define B 2
@@ -26,7 +28,11 @@
 #define L 7
 
 #define combineByte(LL, HH) (((uint16_t) (LL)) | (((uint16_t) (HH))<<8))
+#define getLowByte(NN) ((uint8_t) ((NN)&0x00FF))
+#define getHighByte(NN) ((uint8_t) ((NN)>>8))
+
 #define extractBits(p, extractor) (((*(p))&((extractor)->mask))>>(extractor->dec)) 
+
 
 /////////////Screen constant and register address///////////////////
 //#define PIXEL_DIM 4
