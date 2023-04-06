@@ -21,10 +21,44 @@ void opcode_LD_A_HLm(struct cpuGb* cpu, uint8_t a);
 void opcode_LD_HLm_A(struct cpuGb* cpu, uint8_t a);
 void opcode_LD_A_HLp(struct cpuGb* cpu, uint8_t a);
 void opcode_LD_HLp_A(struct cpuGb* cpu, uint8_t a);
+
 void opcode_LD_X_nn(struct cpuGb* cpu, uint8_t a);
 void opcode_LD_nn_SP(struct cpuGb* cpu, uint8_t a);
 void opcode_LD_SP_HL(struct cpuGb* cpu, uint8_t a);
 void opcode_PUSH_X(struct cpuGb* cpu, uint8_t a);
 void opcode_POP_X(struct cpuGb* cpu, uint8_t a);
+
+void opcode_ADD_X(struct cpuGb* cpu, uint8_t a);
+void opcode_ADD_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_ADD_n(struct cpuGb* cpu, uint8_t a); 
+void opcode_ADC_X(struct cpuGb* cpu, uint8_t a);
+void opcode_ADC_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_ADC_n(struct cpuGb* cpu, uint8_t a); 
+void opcode_SUB_X(struct cpuGb* cpu, uint8_t a);
+void opcode_SUB_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_SUB_n(struct cpuGb* cpu, uint8_t a);
+void opcode_SBC_X(struct cpuGb* cpu, uint8_t a);
+void opcode_SBC_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_SBC_n(struct cpuGb* cpu, uint8_t a); 
+void opcode_CP_X(struct cpuGb* cpu, uint8_t a);
+void opcode_CP_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_CP_n(struct cpuGb* cpu, uint8_t a);
+void opcode_INC_X(struct cpuGb* cpu, uint8_t a);
+void opcode_INC_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_DEC_X(struct cpuGb* cpu, uint8_t a);
+void opcode_INC_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_AND_X(struct cpuGb* cpu, uint8_t a);
+void opcocde_AND_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_AND_n(struct cpuGb* cpu, uint8_t a);
+void opcode_OR_X(struct cpuGb* cpu, uint8_t a);
+void opcocde_OR_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_OR_n(struct cpuGb* cpu, uint8_t a);
+void opcode_XOR_X(struct cpuGb* cpu, uint8_t a);
+void opcocde_XOR_HL(struct cpuGb* cpu, uint8_t a);
+void opcode_XOR_n(struct cpuGb* cpu, uint8_t a);
+void opcode_CCF(struct cpuGb* cpu, uint8_t a);
+void opcode_SCF(struct cpuGb* cpu, uint8_t a);
+void opcode_CPL(struct cpuGb* cpu, uint8_t a);
+
 
 #endif

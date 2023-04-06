@@ -28,3 +28,131 @@ void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
     return cpu->mem[add];
 }
+
+uint8_t add_lowOverflow(struct cpuGb* cpu, uint8_t a, uint8_t b){
+    return (a&0x0F + b&0x0F > 0x0F) ? 1:0;
+}
+
+void opcode_ADD8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    writeBits(cpu->flags, cpu->h, add_lowOverflow(cpu, a, b));
+
+    uint8_t c = __builtin_add_overflow(a, b, res)? 1:0;
+    writeBits(cpu->flags, cpu->c, c);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+    
+    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+}
+
+void opcode_ADC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    uint8_t h = add_lowOverflow(cpu, a, b);
+
+    uint8_t c = __builtin_add_overflow(a, b, res)? 1:0;
+
+    h |= add_lowOverflow(cpu, *(res), extractBits(cpu->flags, cpu->c));
+
+    c |= __builtin_add_overflow(*(res), b, res)? 1:0;
+
+    writeBits(cpu->flags, cpu->h, h);
+
+    writeBits(cpu->flags, cpu->c, c);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+    
+    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+}
+
+//The INCs opcodes don't update the C flag for some reason (is it a typo in the doc?)
+void opcode_INC8bit(struct cpuGb* cpu, uint8_t a, uint8_t * res){
+    uint8_t h = add_lowOverflow(cpu, a, 1);
+
+    *res = a+1;
+
+    writeBits(cpu->flags, cpu->h, h);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+
+    writeBits(cpu->flags, cpu->z, *res == 0? 1:0);
+}
+
+uint8_t sub_lowOverflow(struct cpuGb* cpu, uint8_t a, uint8_t b){
+    return (a&0x0F - b&0x0F > 0x0F) ? 1:0;
+}
+
+void opcode_SUB8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    writeBits(cpu->flags, cpu->h, sub_lowOverflow(cpu, a, b));    
+
+    uint8_t c = __builtin_sub_overflow(a, b, res)? 1:0;
+    writeBits(cpu->flags, cpu->c, c);
+
+    writeBits(cpu->flags, cpu->n, 1);
+    
+    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+}
+
+void opcode_SBC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t * res){    
+    uint8_t h = sub_lowOverflow(cpu, a, b);
+
+    uint8_t c = __builtin_sub_overflow(a, b, res)? 1:0;
+    
+    h|= sub_lowOverflow(cpu, *res, extractBits(cpu->flags, cpu->c));
+
+    c |= __builtin_sub_overflow(*res, extractBits(cpu->flags, cpu->c), res)? 1:0;
+
+    writeBits(cpu->flags, cpu->h, h);
+
+    writeBits(cpu->flags, cpu->c, c);
+
+    writeBits(cpu->flags, cpu->n, 1);
+    
+    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+}
+
+void opcode_DEC8bit(struct cpuGb* cpu, uint8_t a, uint8_t* res){
+    uint8_t h = sub_lowOverflow(cpu, a, 1);
+
+    *res = a - 1;
+
+    writeBits(cpu->flags, cpu->h, h);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+
+    writeBits(cpu->flags, cpu->z, *res == 0? 1:0);
+}
+
+void opcode_AND8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    *res = a&b;
+
+    writeBits(cpu->flags, cpu->h, 1);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+
+    writeBits(cpu->flags, cpu->c, 0);
+
+    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+}
+
+
+void opcode_OR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    *res = a|b;
+
+    writeBits(cpu->flags, cpu->h, 0);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+
+    writeBits(cpu->flags, cpu->c, 0);
+
+    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+}
+
+void opcode_XOR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
+    *res = a^b;
+
+    writeBits(cpu->flags, cpu->h, 0);
+    
+    writeBits(cpu->flags, cpu->n, 0);
+
+    writeBits(cpu->flags, cpu->c, 0);
+
+    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+}

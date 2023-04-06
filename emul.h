@@ -20,6 +20,7 @@
 #define PC 5
 //CPU 8 bit Register names
 #define A 0
+#define F 1 //Used for unit test flag reset only 
 #define B 2
 #define C 3
 #define D 4
@@ -31,8 +32,9 @@
 #define getLowByte(NN) ((uint8_t) ((NN)&0x00FF))
 #define getHighByte(NN) ((uint8_t) ((NN)>>8))
 
-#define extractBits(p, extractor) (((*(p))&((extractor)->mask))>>(extractor->dec)) 
-
+//TODO : Remake the extract bit function to take in account the non perfect mask
+#define extractBits(p, extractor) (((*(p))&((extractor).mask))>>(extractor.dec)) 
+#define writeBits(p, extractor, value) (*(p) = (*(p) & ~(extractor.mask)) | ((value)<<(extractor.dec)))
 
 /////////////Screen constant and register address///////////////////
 //#define PIXEL_DIM 4
