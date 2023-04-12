@@ -31,19 +31,19 @@ void opcode_LD_HL_N(struct cpuGb * cpu, uint8_t a){ //2 byte / 0b00110110 / 3 cy
 }
 
 void opcode_LD_A_BC(struct cpuGb* cpu, uint8_t a){ //1 byte / 0b00001010 / 2 cycle 
-    cpu->reg[A] = readFromAdd(cpu, cpu->reg16[BC]);
+    cpu->reg[rnA] = readFromAdd(cpu, cpu->reg16[BC]);
 }
 
 void opcode_LD_A_DE(struct cpuGb* cpu, uint8_t a){ //1 byte / 0b00011010 / 2 cycle 
-    cpu->reg[A] = readFromAdd(cpu, cpu->reg16[DE]);
+    cpu->reg[rnA] = readFromAdd(cpu, cpu->reg16[DE]);
 }
 
 void opcode_LD_BC_A(struct cpuGb* cpu, uint8_t a){ //1 byte / 0b00000010 / 2 cycle
-    writeToAdd(cpu, cpu->reg16[BC], cpu->reg[A]);
+    writeToAdd(cpu, cpu->reg16[BC], cpu->reg[rnA]);
 }
 
 void opcode_LD_DE_A(struct cpuGb * cpu, uint8_t a){ // 1 byte / 0b00010010 / 2 cycle
-    writeToAdd(cpu, cpu->reg16[DE], cpu->reg[A]);
+    writeToAdd(cpu, cpu->reg16[DE], cpu->reg[rnA]);
 }
 
 void opcode_LD_A_NN(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11111010 / 4 cycles
@@ -52,7 +52,7 @@ void opcode_LD_A_NN(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11111010 / 4 cy
 
     uint16_t nn = combineByte(LL, HH);
 
-    cpu->reg[A] = readFromAdd(cpu, nn);
+    cpu->reg[rnA] = readFromAdd(cpu, nn);
 }
 
 void opcode_LD_nn_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11101010 / 4 cycles
@@ -61,39 +61,39 @@ void opcode_LD_nn_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11101010 / 4 cy
 
     uint16_t nn = combineByte(LL, HH);
 
-    writeToAdd(cpu, nn, cpu->reg[A]);
+    writeToAdd(cpu, nn, cpu->reg[rnA]);
 }
 
 void opcode_LDH_A_C(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11110010 / 2 cycles
-    cpu->reg[A] = readFromAdd(cpu,  combineByte(cpu->reg[C], 0xFF));
+    cpu->reg[rnA] = readFromAdd(cpu,  combineByte(cpu->reg[rnC], 0xFF));
 }
 
 void opcode_LDH_C_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b11100010 / 2 cycle
-    writeToAdd(cpu, combineByte(cpu->reg[C], 0xFF), cpu->reg[A]);
+    writeToAdd(cpu, combineByte(cpu->reg[rnC], 0xFF), cpu->reg[rnA]);
 }
 
 void opcode_LDH_A_n(struct cpuGb* cpu, uint8_t a){ // 2 byte / 0b11110000 / 3 cycle
-    cpu->reg[A] = readFromAdd(cpu, combineByte(readNext(cpu), 0xFF));
+    cpu->reg[rnA] = readFromAdd(cpu, combineByte(readNext(cpu), 0xFF));
 }
 
 void opcode_LDH_n_A(struct cpuGb* cpu, uint8_t a){ // 2 byte / 0b11100000 / 3 cycle
-    writeToAdd(cpu, combineByte(readNext(cpu), 0xFF), cpu->reg[A]);
+    writeToAdd(cpu, combineByte(readNext(cpu), 0xFF), cpu->reg[rnA]);
 }
 
 void opcode_LD_A_HLm(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00111010 / 2 cycle
-    cpu->reg[A] = readFromAdd(cpu, cpu->reg16[HL]--);
+    cpu->reg[rnA] = readFromAdd(cpu, cpu->reg16[HL]--);
 }
 
 void opcode_LD_HLm_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00110010 / 2 cycle
-    writeToAdd(cpu, cpu->reg16[HL]--, cpu->reg[A]);
+    writeToAdd(cpu, cpu->reg16[HL]--, cpu->reg[rnA]);
 }
 
 void opcode_LD_A_HLp(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00101010 / 2 cycle
-    cpu->reg[A] = readFromAdd(cpu, cpu->reg16[HL]++);
+    cpu->reg[rnA] = readFromAdd(cpu, cpu->reg16[HL]++);
 }
 
 void opcode_LD_HLp_A(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b00100010 / 2 cycle
-    writeToAdd(cpu, cpu->reg16[HL]++, cpu->reg[A]);
+    writeToAdd(cpu, cpu->reg16[HL]++, cpu->reg[rnA]);
 }
 
 //Load 16 bit register
@@ -136,79 +136,79 @@ void opcode_POP_X(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11xx0001 / 4 cycle
 void opcode_ADD_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10000xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_ADD8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_ADD8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcode_ADD_HL(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10000110 / 2 cycle
-    opcode_ADD8bit(cpu, cpu->reg[A], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[A]));
+    opcode_ADD8bit(cpu, cpu->reg[rnA], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[rnA]));
 }
 
 void opcode_ADD_n(struct cpuGb* cpu, uint8_t a){ // 1 (?2) byte / 0b11000110 / 2 cycle 
     uint8_t n = readNext(cpu);
-    opcode_ADD8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_ADD8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_ADC_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10001xxx / 1 cycle
     uint8_t x = (0b00000111&a);
-    opcode_ADC8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_ADC8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcode_ADC_HL(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10001110 / 2 cycle
-    opcode_ADC8bit(cpu, cpu->reg[A], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[A]));
+    opcode_ADC8bit(cpu, cpu->reg[rnA], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[rnA]));
 }
 
 void opcode_ADC_n(struct cpuGb* cpu, uint8_t a){ // 1 (?2) byte / 0b11001110 / 2 cycle 
     uint8_t n = readNext(cpu);
-    opcode_ADC8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_ADC8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_SUB_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10010xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_SUB8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_SUB8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcode_SUB_HL(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10010110 / 2 cycle
-    opcode_SUB8bit(cpu, cpu->reg[A], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[A]));
+    opcode_SUB8bit(cpu, cpu->reg[rnA], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[rnA]));
 }
 
 void opcode_SUB_n(struct cpuGb* cpu, uint8_t a){ // 1 (?2) byte / 0b11010110 / 2 cycle 
     uint8_t n = readNext(cpu);
-    opcode_SUB8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_SUB8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_SBC_X(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10011xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_SBC8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_SBC8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcode_SBC_HL(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10011110 / 2 cycle
-    opcode_SBC8bit(cpu, cpu->reg[A], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[A]));
+    opcode_SBC8bit(cpu, cpu->reg[rnA], readFromAdd(cpu, cpu->reg16[HL]), &(cpu->reg[rnA]));
 }
 
 void opcode_SBC_n(struct cpuGb* cpu, uint8_t a){ // 1 (?2) byte / 0b11011110 / 2 cycle 
     uint8_t n = readNext(cpu);
-    opcode_SUB8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_SUB8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 //Maybe one day change this to a proper fonction of compare in cpu.c
 void opcode_CP_X(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b10111xxx / 1 cycle
-    uint8_t tempA = cpu->reg[A];
+    uint8_t tempA = cpu->reg[rnA];
     opcode_SUB_X(cpu, a);
-    cpu->reg[A] = tempA;
+    cpu->reg[rnA] = tempA;
 }
 
 void opcode_CP_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10111110 / 2 cycle
-    uint8_t tempA = cpu->reg[A];
+    uint8_t tempA = cpu->reg[rnA];
     opcode_SUB_HL(cpu, a);
-    cpu->reg[A] = tempA;
+    cpu->reg[rnA] = tempA;
 }
 
 void opcode_CP_n(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11111110 / 2 cycle
-    uint8_t tempA = cpu->reg[A];
+    uint8_t tempA = cpu->reg[rnA];
     opcode_SUB_n(cpu, a);
-    cpu->reg[A] = tempA; 
+    cpu->reg[rnA] = tempA; 
 }
 
 void opcode_INC_X(struct cpuGb* cpu, uint8_t a){//1 byte / 0b00xxx100 / 2 cycle
@@ -231,7 +231,7 @@ void opcode_DEC_X(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00xxx101 / 1 cycle
     opcode_DEC8bit(cpu, cpu->reg[x], &(cpu->reg[x]));
 }
 
-void opcode_INC_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b00110101 / 3 cycle
+void opcode_DEC_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b00110101 / 3 cycle
     uint8_t add = cpu->reg16[HL];
     uint8_t res;
 
@@ -242,55 +242,55 @@ void opcode_INC_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b00110101 / 3 cycle
 void opcode_AND_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10100xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_AND8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_AND8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcocde_AND_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10100110 / 2 cycle
     uint8_t val = readFromAdd(cpu, cpu->reg16[HL]);
 
-    opcode_AND8bit(cpu, cpu->reg[A], val, &(cpu->reg[A]));
+    opcode_AND8bit(cpu, cpu->reg[rnA], val, &(cpu->reg[rnA]));
 }
 
 void opcode_AND_n(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11100110 / 2 cycle
     uint8_t n = readNext(cpu);
 
-    opcode_AND8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_AND8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_OR_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10110xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_OR8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_OR8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcocde_OR_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10110110 / 2 cycle
     uint8_t val = readFromAdd(cpu, cpu->reg16[HL]);
 
-    opcode_OR8bit(cpu, cpu->reg[A], val, &(cpu->reg[A]));
+    opcode_OR8bit(cpu, cpu->reg[rnA], val, &(cpu->reg[rnA]));
 }
 
 void opcode_OR_n(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11110110 / 2 cycle
     uint8_t n = readNext(cpu);
 
-    opcode_OR8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_OR8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_XOR_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10101xxx / 1 cycle
     uint8_t x = (0b00000111&a);
     
-    opcode_XOR8bit(cpu, cpu->reg[A], cpu->reg[x], &(cpu->reg[A]));
+    opcode_XOR8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
 void opcocde_XOR_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10101110 / 2 cycle
     uint8_t val = readFromAdd(cpu, cpu->reg16[HL]);
 
-    opcode_XOR8bit(cpu, cpu->reg[A], val, &(cpu->reg[A]));
+    opcode_XOR8bit(cpu, cpu->reg[rnA], val, &(cpu->reg[rnA]));
 }
 
 void opcode_XOR_n(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11101110 / 2 cycle
     uint8_t n = readNext(cpu);
 
-    opcode_XOR8bit(cpu, cpu->reg[A], n, &(cpu->reg[A]));
+    opcode_XOR8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
 void opcode_CCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00111111 / 1 cycle
@@ -308,10 +308,26 @@ void opcode_SCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00110111 / 1 cycle
 }
 
 void opcode_CPL(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00101111 / 1 cycle
-    cpu->reg[A] = ~(cpu->reg[A]);
+    cpu->reg[rnA] = ~(cpu->reg[rnA]);
 
     writeBits(cpu->flags, cpu->n, 1);
     writeBits(cpu->flags, cpu->h, 1);
+}
+
+void opcode_ADD_HL_XX(struct cpuGb* cpu, uint8_t a){ //1 byte / 0bxxxx1001 / ? cycle
+    uint8_t x = ((0xF0&a)>>4) + 1; //This is the way the 16 bit register is stored don't ask why
+
+    opcode_ADD16bit(cpu, cpu->reg16[HL], cpu->reg16[x], &(cpu->reg16[HL]));
+}
+
+void opcode_INC_XX(struct cpuGb* cpu, uint8_t a){ // / 0xX3
+    uint8_t x = ((0xF0&a)>>4) + 1;
+    cpu->reg16[x] = cpu->reg16[x] + 1;
+}
+
+void opcode_DEC_XX(struct cpuGb* cpu, uint8_t a){// / 
+    uint8_t x = ((0xF0&a)>>4) + 1;
+    cpu->reg16[x] = cpu->reg16[x] - 1;
 }
 
 

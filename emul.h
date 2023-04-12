@@ -4,13 +4,10 @@
 
 
 #define MEMORY_SIZE 65536
-#define CURSOR0 TODO
-#define OPCODE_NB TODO
+#define CURSOR0 1 //TODO
+#define OPCODE_NB 1 //TODO  
 #define REGISTER8_SIZE 8
 #define REGISTER16_SIZE 6
-#define STACK_POINTER 8
-#define PROGRAM_COUNTER 10
-#define FLAGS 1
 //CPU 16 bit Register names
 #define AF 0
 #define BC 1
@@ -19,14 +16,14 @@
 #define SP 4
 #define PC 5
 //CPU 8 bit Register names
-#define A 0
-#define F 1 //Used for unit test flag reset only 
-#define B 2
-#define C 3
-#define D 4
-#define E 5
-#define H 6
-#define L 7
+#define rnA 0
+#define rnF 1
+#define rnB 2
+#define rnC 3
+#define rnD 4
+#define rnE 5
+#define rnH 6
+#define rnL 7
 
 #define combineByte(LL, HH) (((uint16_t) (LL)) | (((uint16_t) (HH))<<8))
 #define getLowByte(NN) ((uint8_t) ((NN)&0x00FF))
@@ -38,11 +35,11 @@
 
 /////////////Screen constant and register address///////////////////
 //#define PIXEL_DIM 4
-//#define PIXEL_BY_WIDTH 320
-//#define PIXEL_BY_HEIGHT 240
+#define PIXEL_BY_WIDTH 320
+#define PIXEL_BY_HEIGHT 240
 //#define SCREEN_WIDTH PIXEL_BY_WIDTH*PIXEL_DIM
 //#define SCREEN_HEIGHT PIXEL_BY_HEIGHT*PIXEL_DIM
-//#define PALETTE_SIZE 16
+#define PALETTE_SIZE 16
 //#define SPF 16 //Ms by frame
 //#define FREQUENCY 1000 //Expressed in ms^-1
 #define RENDER_OAM 0xFE00
@@ -337,7 +334,6 @@ struct Sound{
 
 struct Chip16{
     struct cpuGb cpu;
-    struct Screen screen;
     struct Control control;
 
     //Rendering    
@@ -348,7 +344,6 @@ struct Chip16{
     void (*opcodeFcts[OPCODE_NB])(struct Chip16 *, uint8_t, uint8_t, uint8_t);
 };
 
-void emulateChip16(struct Chip16 * chip16);
 
 #endif
 

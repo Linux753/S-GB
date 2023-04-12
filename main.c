@@ -2,25 +2,23 @@
 #include <stdlib.h>
 #include <time.h>
 #include "emul.h"
-#include "manageEmul.h"
 #include "manageSDL.h"
+#include "unitTestOpcode.h"
+#include "cpu.h"
 
 int main(int argc, char ** argv){
-    struct Chip16 chip16;
-
     srand(time(NULL));
 
-    if(initChip16(&chip16) != EXIT_SUCCESS){
-        fprintf(stderr, "Error while initializing the emulator");
-    }
+    struct cpuGb cpu;
+    initCPU(&cpu);
 
-    if(argc<2){
-        loadROM(&(chip16.cpu), "ROMPack/ROMs/Demos/Intro.c16");
-    }
-    else{
-        loadROM(&(chip16.cpu), argv[1]);
-    }
-    emulateChip16(&chip16);
+    UT_writeBits(&cpu);
+    UT_opcode_ADD8bit(&cpu);
+    UT_opcode_ADC8bit(&cpu);
+    UT_opcode_SUB8bit(&cpu);
+    UT_opcode_INC8bit(&cpu);
+    UT_opcode_SBC8bit(&cpu);
+    UT_opcode_SCF(&cpu);
 
     return EXIT_SUCCESS;
 }
