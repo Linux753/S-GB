@@ -245,7 +245,7 @@ void opcode_AND_X(struct cpuGb* cpu, uint8_t a){ // 1 byte / 0b10100xxx / 1 cycl
     opcode_AND8bit(cpu, cpu->reg[rnA], cpu->reg[x], &(cpu->reg[rnA]));
 }
 
-void opcocde_AND_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10100110 / 2 cycle
+void opcode_AND_HL(struct cpuGb* cpu, uint8_t a){//1 byte / 0b10100110 / 2 cycle
     uint8_t val = readFromAdd(cpu, cpu->reg16[HL]);
 
     opcode_AND8bit(cpu, cpu->reg[rnA], val, &(cpu->reg[rnA]));
@@ -330,12 +330,66 @@ void opcode_DEC_XX(struct cpuGb* cpu, uint8_t a){// /
     cpu->reg16[x] = cpu->reg16[x] - 1;
 }
 
-void opcode_add_SD_dd(struct cpuGb* cpu, uint8_t a){//2 byte / E8 dd / 4 cycle
+void opcode_add_SD_dd(struct cpuGb* cpu, uint8_t a){//2 byte / 0xE8 dd / 4 cycle
     int8_t dd = (int8_t) readNext(cpu);
     opcode_ADDdd(cpu, cpu->reg16[SP], dd, &(cpu->reg16[SP]));
 }
 
-void opcode_ld_HL_SPdd(struct cpuGb* cpu, uint8_t a){//2 byte / F8 dd / 3 cycle
+void opcode_ld_HL_SPdd(struct cpuGb* cpu, uint8_t a){//2 byte / 0xF8 dd / 3 cycle
     int8_t dd = (int8_t) readNext(cpu);
     opcode_ADDdd(cpu, cpu->reg16[SP], dd, &(cpu->reg16[HL]));
 }
+
+void opcode_rlca(struct cpuGb* cpu, uint8_t a){//1 byte / 0x07 / 1 cycle
+    opcode_rlc(cpu, &(cpu->reg[rnA]));
+    writeBits(cpu->flags, cpu->z, 0); //For the rotate opcode specialized on the A register the Z flag is set to zero and not dependant
+}
+
+void opcode_rla(struct cpuGb* cpu, uint8_t a){
+    opcode_rl(cpu, &(cpu->reg[rnA]));
+    writeBits(cpu->flags, cpu->z, 0); 
+}
+
+void opcode_rrca(struct cpuGb* cpu, uint8_t a){
+    opcode_rrc(cpu, &(cpu->reg[rnA]));
+    writeBits(cpu->flags, cpu->z, 0); 
+}
+
+void opcode_rra(struct cpuGb* cpu, uint8_t a){
+    opcode_rr(cpu, &(cpu->reg[rnA]));
+    writeBits(cpu->flags, cpu->z, 0); 
+}
+
+void opcode_CBprefix(struct cpuGb* cpu, uint8_t a){
+    uint8_t * p;
+    uint8_t regP = opcode_CB_getP(cpu, &p);
+
+    switch(regP&0xF8){
+        case 0x00:
+            opcode_rlc(cpu, p);
+            break;
+        case 0x08:
+            opcode_rrc(cpu,p);
+            break;
+        case 0x10:
+            opcode_rl(cpu, p);
+            break;
+        case 0x18:
+            opcode_rr(cpu, p);
+            break;
+        case 0x20:
+            opcode_sla(cpu, p);
+            break;
+        case 0x28:
+            opcode_sra(cpu, p);
+            break;
+        case 0x30:
+            opcode_swap(cpu, p);
+            break;
+        case 0x38:
+            opcode_srl(cpu, p);
+            break;
+    }
+}
+
+

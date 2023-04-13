@@ -181,3 +181,136 @@ void opcode_ADDdd(struct cpuGb* cpu, uint16_t a, int8_t dd, uint16_t *res){
     writeBits(cpu->flags, cpu->z, 0);
     writeBits(cpu->flags, cpu->n, 0);
 }
+
+uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
+    uint8_t regP = readNext(cpu);
+    switch(regP&0x0F){
+        case 0x06:
+        case 0x0E:
+            *p = &(cpu->mem[cpu->reg16[HL]]);
+            break;
+        case 0x07:
+        case 0x0F:
+            *p = &(cpu->reg[rnA]);
+            break;
+        default:
+            *p = &(cpu->reg[(regP<0x07)? regP+2: regP-6]);
+            break;
+    }
+
+    return regP;
+}
+
+void opcode_rlc(struct cpuGb* cpu, uint8_t * p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t c = extractBits(p, hiBit);
+    
+    *p = (*p)<<1;
+    
+    writeBits(p, lowBit, c);
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_rl(struct cpuGb* cpu, uint8_t * p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t oldC = extractBits(cpu->flags, cpu->c);
+    uint8_t c = extractBits(p, hiBit); 
+    
+    *p = (*p)<<1;
+
+    writeBits(p, lowBit, oldC);
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_rrc(struct cpuGb* cpu, uint8_t * p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t c = extractBits(p, lowBit);
+    
+    *p = (*p)>>1;
+    
+    writeBits(p, hiBit, c);
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_rr(struct cpuGb* cpu, uint8_t * p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t oldC = extractBits(cpu->flags, cpu->c);
+    uint8_t c = extractBits(p, lowBit); 
+    
+    *p = (*p)>>1;
+
+    writeBits(p, hiBit, oldC);
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_sla(struct cpuGb* cpu, uint8_t *p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    uint8_t c = extractBits(p, hiBit);
+
+    *p = (*p)<<1;
+
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_swap(struct cpuGb* cpu, uint8_t *p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+
+    uint8_t hiN = extractBits(p, hiBit);
+    uint8_t lowN = extractBits(p, lowBit);
+    writeBits(p, hiBit, lowN);
+    writeBits(p, lowBit, hiN);
+
+    writeBits(cpu->flags, cpu->c, 0);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_sra(struct cpuGb* cpu, uint8_t *p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t b7 = extractBits(p, hiBit);
+    uint8_t c = extractBits(p, lowBit);
+    
+    *p = (*p)>>1;
+    writeBits(p, hiBit, b7);
+
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
+
+void opcode_srl(struct cpuGb* cpu, uint8_t *p){
+    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+    uint8_t c = extractBits(p, lowBit);
+    
+    *p = (*p)>>1;
+    writeBits(p, hiBit, 0);
+
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
+    writeBits(cpu->flags, cpu->n, 0);
+    writeBits(cpu->flags, cpu->h, 0);
+}
