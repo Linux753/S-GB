@@ -77,7 +77,6 @@ void opcode_INC8bit(struct cpuGb* cpu, uint8_t a, uint8_t * res){
 
 uint8_t sub_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
     return ((uint8_t)((a&0x0F) - (b&0x0F) )>(uint8_t) 0x0F) ? 1:0;
-    //Seem to works as intended but not entierly sure of the behavior of the conversion need to see rules of conversion and operation type to determine precisely that it's 100% accurate
 }
 
 void opcode_SUB8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
@@ -159,7 +158,7 @@ void opcode_XOR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
 }
 
 uint8_t add_lowOverflow16bit(struct cpuGb* cpu, uint16_t a, uint16_t b){
-    return (a&0x000F + b&0x000F > 0x000F)? 1:0;
+    return ((a&0x000F) + (b&0x000F) > 0x000F)? 1:0;
 }
 
 void opcode_ADD16bit(struct cpuGb* cpu, uint16_t a, uint16_t b, uint16_t *res){
@@ -173,5 +172,12 @@ void opcode_ADD16bit(struct cpuGb* cpu, uint16_t a, uint16_t b, uint16_t *res){
 }
 
 void opcode_ADDdd(struct cpuGb* cpu, uint16_t a, int8_t dd, uint16_t *res){
-    
+    uint8_t h = (((a&0x000F) + (dd&0x0F)) != ((a+dd)&0x000F))? 1:0;
+
+    uint8_t c = __builtin_add_overflow(a, dd, res);
+
+    writeBits(cpu->flags, cpu->c, c);
+    writeBits(cpu->flags, cpu->h, h);
+    writeBits(cpu->flags, cpu->z, 0);
+    writeBits(cpu->flags, cpu->n, 0);
 }

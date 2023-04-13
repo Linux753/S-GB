@@ -8,4 +8,5 @@ int UT_opcode_INC8bit(struct cpuGb* cpu);
 int UT_opcode_SBC8bit(struct cpuGb* cpu);
 int UT_opcode_SCF(struct cpuGb* cpu);
 int UT_writeBits(struct cpuGb* cpu);
+int UT_opcode_ADDdd(struct cpuGb* cpu);
 #endif

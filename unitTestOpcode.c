@@ -182,3 +182,37 @@ int UT_opcode_SCF(struct cpuGb* cpu){
 
     return ret;
 }
+
+int UT_opcode_ADDdd(struct cpuGb* cpu){
+    int ret = EXIT_SUCCESS;
+
+    uint16_t a = 0xFFE3;
+    int8_t dd = 0x05;
+    uint16_t res;
+    opcode_ADDdd(cpu, a, dd, &res);
+    if(extractBits(cpu->flags, cpu->c) != 0 || extractBits(cpu->flags, cpu->h) != 0){
+        fprintf(stderr, "Opcode ADDdd failed flag C or H\n");
+        ret = EXIT_FAILURE;
+    }
+
+    a = 0xFFEF;
+    dd = 0x20;
+    opcode_ADDdd(cpu, a, dd, &res);
+    if(extractBits(cpu->flags, cpu->c) != 1 && extractBits(cpu->flags, cpu->h) != 0){
+        fprintf(stderr, "Opcode ADDdd failed flag C\n");
+        ret = EXIT_FAILURE;
+    }
+
+    a = 0xFF01;
+    dd = 0x75;
+    opcode_ADDdd(cpu, a, dd, &res);
+    if(extractBits(cpu->flags, cpu->h) != 1 && extractBits(cpu->flags, cpu->c) != 0){
+        fprintf(stderr, "Opcode ADDdd failed flag H\n");
+        ret = EXIT_FAILURE;
+    }
+
+    if(ret == EXIT_SUCCESS){
+        fprintf(stderr, "Opcode Adddd 8 bit success\n");
+    }
+    return ret;
+}

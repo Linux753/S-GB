@@ -19,6 +19,7 @@ int main(int argc, char ** argv){
     UT_opcode_INC8bit(&cpu);
     UT_opcode_SBC8bit(&cpu);
     UT_opcode_SCF(&cpu);
+    UT_opcode_ADDdd(&cpu);
 
     return EXIT_SUCCESS;
 }

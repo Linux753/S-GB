@@ -330,4 +330,12 @@ void opcode_DEC_XX(struct cpuGb* cpu, uint8_t a){// /
     cpu->reg16[x] = cpu->reg16[x] - 1;
 }
 
+void opcode_add_SD_dd(struct cpuGb* cpu, uint8_t a){//2 byte / E8 dd / 4 cycle
+    int8_t dd = (int8_t) readNext(cpu);
+    opcode_ADDdd(cpu, cpu->reg16[SP], dd, &(cpu->reg16[SP]));
+}
 
+void opcode_ld_HL_SPdd(struct cpuGb* cpu, uint8_t a){//2 byte / F8 dd / 3 cycle
+    int8_t dd = (int8_t) readNext(cpu);
+    opcode_ADDdd(cpu, cpu->reg16[SP], dd, &(cpu->reg16[HL]));
+}

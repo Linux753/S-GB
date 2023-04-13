@@ -31,7 +31,7 @@
 
 //TODO : Remake the extract bit function to take in account the non perfect mask
 #define extractBits(p, extractor) (((*(p))&((extractor).mask))>>(extractor.dec)) 
-#define writeBits(p, extractor, value) (*(p) = (*(p) & ~(extractor.mask)) | ((value)<<(extractor.dec)))
+#define writeBits(p, extractor, value) (*(p) = (*(p) & ~(((extractor.mask)>>extractor.dec)<<extractor.dec)) | ((value)<<(extractor.dec)))
 
 /////////////Screen constant and register address///////////////////
 //#define PIXEL_DIM 4
