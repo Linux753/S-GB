@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "emul.h"
 
+struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
+struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
+
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
@@ -33,15 +36,23 @@ uint8_t add_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
     return ((a&0x0F) + (b&0x0F) > 0x0F) ? 1:0;
 }
 
+//Write the flags to theflag register, -1 for unmodified flag 
+void writeFlag(struct cpuGb* cpu, uint8_t z, uint8_t n, uint8_t h, uint8_t c){ 
+    if(h>=0) writeBits(cpu->flags, cpu->h, h);
+
+    if(c>=0) writeBits(cpu->flags, cpu->c, c);
+    
+    if(n>=0) writeBits(cpu->flags, cpu->n, n);
+    
+    if(z>=0) writeBits(cpu->flags, cpu->z, z);
+}
+
 void opcode_ADD8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
-    writeBits(cpu->flags, cpu->h, add_lowOverflow8bit(cpu, a, b));
+    uint8_t h = add_lowOverflow8bit(cpu, a, b);
 
     uint8_t c = __builtin_add_overflow(a, b, res)? 1:0;
-    writeBits(cpu->flags, cpu->c, c);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-    
-    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+
+    writeFlag(cpu, *res == 0, 0, h, c);
 }
 
 void opcode_ADC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
@@ -53,26 +64,16 @@ void opcode_ADC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
 
     c |= __builtin_add_overflow(*(res), b, res)? 1:0;
 
-    writeBits(cpu->flags, cpu->h, h);
-
-    writeBits(cpu->flags, cpu->c, c);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-    
-    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+    writeFlag(cpu, *res == 0, 0, h, c);
 }
 
-//The INCs opcodes don't update the C flag for some reason (is it a typo in the doc?)
+//The INCs opcodes don't update the C flag for some reason
 void opcode_INC8bit(struct cpuGb* cpu, uint8_t a, uint8_t * res){
     uint8_t h = add_lowOverflow8bit(cpu, a, 1);
 
     *res = a+1;
 
-    writeBits(cpu->flags, cpu->h, h);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-
-    writeBits(cpu->flags, cpu->z, *res == 0? 1:0);
+    writeFlag(cpu, *res == 0, 0, h, -1);
 }
 
 uint8_t sub_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
@@ -80,14 +81,11 @@ uint8_t sub_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
 }
 
 void opcode_SUB8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
-    writeBits(cpu->flags, cpu->h, sub_lowOverflow8bit(cpu, a, b));    
+    uint8_t h = sub_lowOverflow8bit(cpu, a, b);
 
     uint8_t c = __builtin_sub_overflow(a, b, res)? 1:0;
-    writeBits(cpu->flags, cpu->c, c);
 
-    writeBits(cpu->flags, cpu->n, 1);
-    
-    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+    writeFlag(cpu, *res == 0, 1, h, c);
 }
 
 void opcode_SBC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t * res){    
@@ -99,13 +97,7 @@ void opcode_SBC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t * res){
 
     c |= __builtin_sub_overflow(*res, extractBits(cpu->flags, cpu->c), res)? 1:0;
 
-    writeBits(cpu->flags, cpu->h, h);
-
-    writeBits(cpu->flags, cpu->c, c);
-
-    writeBits(cpu->flags, cpu->n, 1);
-    
-    writeBits(cpu->flags, cpu->z, *res == 0? 1: 0);
+    writeFlag(cpu, *res == 0, 1, h, c);
 }
 
 void opcode_DEC8bit(struct cpuGb* cpu, uint8_t a, uint8_t* res){
@@ -113,48 +105,26 @@ void opcode_DEC8bit(struct cpuGb* cpu, uint8_t a, uint8_t* res){
 
     *res = a - 1;
 
-    writeBits(cpu->flags, cpu->h, h);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-
-    writeBits(cpu->flags, cpu->z, *res == 0? 1:0);
+    writeFlag(cpu, *res==0, 1, h, -1);
 }
 
 void opcode_AND8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
     *res = a&b;
 
-    writeBits(cpu->flags, cpu->h, 1);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-
-    writeBits(cpu->flags, cpu->c, 0);
-
-    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+    writeFlag(cpu, *res == 0, 0, 1, 0);
 }
 
 
 void opcode_OR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
     *res = a|b;
 
-    writeBits(cpu->flags, cpu->h, 0);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-
-    writeBits(cpu->flags, cpu->c, 0);
-
-    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+    writeFlag(cpu, *res == 0, 0,0,0);
 }
 
 void opcode_XOR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
     *res = a^b;
 
-    writeBits(cpu->flags, cpu->h, 0);
-    
-    writeBits(cpu->flags, cpu->n, 0);
-
-    writeBits(cpu->flags, cpu->c, 0);
-
-    writeBits(cpu->flags, cpu->z, *res == 0 ? 1:0);
+    writeFlag(cpu, *res == 0, 0, 0, 0);
 }
 
 uint8_t add_lowOverflow16bit(struct cpuGb* cpu, uint16_t a, uint16_t b){
@@ -166,9 +136,7 @@ void opcode_ADD16bit(struct cpuGb* cpu, uint16_t a, uint16_t b, uint16_t *res){
 
     uint8_t c = __builtin_add_overflow(a, b, res);
 
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->h, h);
-    writeBits(cpu->flags, cpu->n, 0);
+    writeFlag(cpu, -1, 0, h, c);
 }
 
 void opcode_ADDdd(struct cpuGb* cpu, uint16_t a, int8_t dd, uint16_t *res){
@@ -176,10 +144,7 @@ void opcode_ADDdd(struct cpuGb* cpu, uint16_t a, int8_t dd, uint16_t *res){
 
     uint8_t c = __builtin_add_overflow(a, dd, res);
 
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->h, h);
-    writeBits(cpu->flags, cpu->z, 0);
-    writeBits(cpu->flags, cpu->n, 0);
+    writeFlag(cpu, 0, 0, h, c);
 }
 
 uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
@@ -202,115 +167,77 @@ uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
 }
 
 void opcode_rlc(struct cpuGb* cpu, uint8_t * p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t c = extractBits(p, hiBit);
     
     *p = (*p)<<1;
     
     writeBits(p, lowBit, c);
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, c);
 }
 
 void opcode_rl(struct cpuGb* cpu, uint8_t * p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t oldC = extractBits(cpu->flags, cpu->c);
     uint8_t c = extractBits(p, hiBit); 
     
     *p = (*p)<<1;
 
     writeBits(p, lowBit, oldC);
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, c);
 }
 
 void opcode_rrc(struct cpuGb* cpu, uint8_t * p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t c = extractBits(p, lowBit);
     
     *p = (*p)>>1;
     
     writeBits(p, hiBit, c);
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p == 0, 0, 0, c);
 }
 
 void opcode_rr(struct cpuGb* cpu, uint8_t * p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t oldC = extractBits(cpu->flags, cpu->c);
     uint8_t c = extractBits(p, lowBit); 
     
     *p = (*p)>>1;
 
     writeBits(p, hiBit, oldC);
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p == 0, 0, 0, c);
 }
 
 void opcode_sla(struct cpuGb* cpu, uint8_t *p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
     uint8_t c = extractBits(p, hiBit);
 
     *p = (*p)<<1;
 
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, c);
 }
 
 void opcode_swap(struct cpuGb* cpu, uint8_t *p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
 
     uint8_t hiN = extractBits(p, hiBit);
     uint8_t lowN = extractBits(p, lowBit);
     writeBits(p, hiBit, lowN);
     writeBits(p, lowBit, hiN);
 
-    writeBits(cpu->flags, cpu->c, 0);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, 0);
 }
 
 void opcode_sra(struct cpuGb* cpu, uint8_t *p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t b7 = extractBits(p, hiBit);
     uint8_t c = extractBits(p, lowBit);
     
     *p = (*p)>>1;
     writeBits(p, hiBit, b7);
 
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, c);
 }
 
 void opcode_srl(struct cpuGb* cpu, uint8_t *p){
-    struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
-    struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
     uint8_t c = extractBits(p, lowBit);
     
     *p = (*p)>>1;
     writeBits(p, hiBit, 0);
 
-    writeBits(cpu->flags, cpu->c, c);
-    writeBits(cpu->flags, cpu->z, (*p == 0 ? 1:0));
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, *p==0, 0, 0, c);
 }
+

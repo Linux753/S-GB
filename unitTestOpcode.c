@@ -21,7 +21,7 @@ int UT_writeBits(struct cpuGb* cpu){
         ret = EXIT_FAILURE;
     }
     else{
-        fprintf(stderr, "WriteBits to C succeed\n");
+        fprintf(stderr, "WriteBits to C success\n");
     }
     return ret;
 }

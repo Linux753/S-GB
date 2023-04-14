@@ -301,6 +301,10 @@ void opcode_CCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00111111 / 1 cycle
     writeBits(cpu->flags, cpu->h, 0);
 }
 
+void opcode_DAA(struct cpuGb* cpu, uint8_t a){
+    //TODO
+}
+
 void opcode_SCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00110111 / 1 cycle
     writeBits(cpu->flags, cpu->c, 1);
     writeBits(cpu->flags, cpu->n, 0);
