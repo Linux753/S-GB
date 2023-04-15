@@ -20,6 +20,14 @@ int main(int argc, char ** argv){
     UT_opcode_SBC8bit(&cpu);
     UT_opcode_SCF(&cpu);
     UT_opcode_ADDdd(&cpu);
+    UT_opcode_rlc(&cpu);
+    UT_opcode_rl(&cpu);
+    UT_opcode_rrc(&cpu);
+    UT_opcode_rr(&cpu);
+    UT_opcode_sla(&cpu);
+    UT_opcode_swap(&cpu);
+    UT_opcode_sra(&cpu);
+    UT_opcode_srl(&cpu);
 
     return EXIT_SUCCESS;
 }

@@ -5,6 +5,7 @@
 #include "emul.h"
 #include "cpu.h"
 #include "opcode.h"
+#include "unitTestOpcode.h"
 
 void resetRegister(struct cpuGb* cpu){
     for(int i=0; i<REGISTER16_SIZE; i++){
@@ -216,3 +217,94 @@ int UT_opcode_ADDdd(struct cpuGb* cpu){
     }
     return ret;
 }
+
+int UT_opcode_rlc(struct cpuGb* cpu){
+    int ret = EXIT_SUCCESS;
+
+    uint8_t a = 0b10001111;
+    opcode_rlc(cpu, &a);
+    if(a != 0b00011111 || extractBits(cpu->flags, cpu->c) != 1){
+        fprintf(stderr, "Opcode rlc failed flag H\n");
+        ret = EXIT_FAILURE;
+    }
+
+    if(ret == EXIT_SUCCESS){
+        fprintf(stderr, "Opcode rlc success\n");
+    }
+
+    return ret;
+}
+
+int UT_opcode_rl(struct cpuGb* cpu){
+    int ret = EXIT_SUCCESS;
+
+    writeBits(cpu->flags, cpu->c, 0);
+    uint8_t a = 0b10001111;
+    opcode_rl(cpu, &a);
+    if(a != 0b00011110 || *cpu->flags != 0b00010000){
+        fprintf(stderr, "Opcode rl failed flag H\n");
+        ret = EXIT_FAILURE;
+    }
+
+    if(ret == EXIT_SUCCESS){
+        fprintf(stderr, "Opcode rl success\n");
+    }
+
+    return ret;
+}
+
+int UT_opcode_rrc(struct cpuGb* cpu){
+    int ret = EXIT_SUCCESS;
+
+    uint8_t a = 0b10001110;
+    opcode_rrc(cpu, &a);
+    if(a != 0b01000111 || *cpu->flags != 0b00000000){
+        fprintf(stderr, "Opcode rrc failed\n");
+        ret = EXIT_FAILURE;
+    }
+
+    if(ret == EXIT_SUCCESS){
+        fprintf(stderr, "Opcode rrc success\n");
+    }
+
+    return ret;
+}
+
+int UT_opcode_rr(struct cpuGb* cpu){
+    int ret = EXIT_SUCCESS;
+
+    writeBits(cpu->flags, cpu->c, 1);
+    uint8_t a = 0b10001110;
+    opcode_rr(cpu, &a);
+    if(a != 0b11000111 || *cpu->flags != 0b00000000){
+        fprintf(stderr, "Opcode rr failed\n");
+        ret = EXIT_FAILURE;
+    }
+
+    if(ret == EXIT_SUCCESS){
+        fprintf(stderr, "Opcode rr success\n");
+    }
+
+    return ret;
+}
+
+BEGUT(UT_opcode_sla)
+    uint8_t res = 0b10001110;
+    UTOpcode(cpu, opcode_sla, "SLA", &res, 0b00011100, 0b00010000, &res)
+ENDUT("SLA")
+
+BEGUT(UT_opcode_swap)
+    uint8_t res = 0b10001110;
+    UTOpcode(cpu, opcode_swap, "SWAP", &res, 0b00001111, 255, &res)
+ENDUT("SWAP")
+
+BEGUT(UT_opcode_sra)
+    uint8_t res = 0b10000000;
+    UTOpcode(cpu, opcode_sra, "SRA", &res, 0b11000000, 0, &res)
+ENDUT("SRA")
+
+BEGUT(UT_opcode_srl)
+    uint8_t res = 0b10000000;
+    UTOpcode(cpu, opcode_srl, "SRL", &res, 0b01000000, 0, &res)
+ENDUT("SRL")
+
