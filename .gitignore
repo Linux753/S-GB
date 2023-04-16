@@ -1,2 +1,12 @@
-Note
 unitTest
+Makefile
+Makefile.in
+config.h
+*.o
+autom4te.cache
+build-aux
+aclocal.m4
+config.*
+configure
+configure~
+stamp-h1

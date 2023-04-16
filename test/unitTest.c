@@ -1,13 +1,9 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include "emul.h"
-#include "manageSDL.h"
 #include "unitTestOpcode.h"
-#include "cpu.h"
+#include "emul.h"
 
-int main(int argc, char ** argv){
-    srand(time(NULL));
+int main(void){
+    int ret = EXIT_SUCCESS;
 
     struct cpuGb cpu;
     initCPU(&cpu);
@@ -29,5 +25,5 @@ int main(int argc, char ** argv){
     UT_opcode_sra(&cpu);
     UT_opcode_srl(&cpu);
 
-    return EXIT_SUCCESS;
+    return ret;
 }

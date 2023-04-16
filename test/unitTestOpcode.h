@@ -5,6 +5,8 @@ must have ret variable declared in the scope of call.
 Set NULL for res if res are not tested.
 Set flagsVal to 255 to not test flags.
 Repeat res for the argument of the function if necessary*/
+#include "emul.h"
+
 #define BEGUT(fname) int fname(struct cpuGb* cpu){\
     int ret = EXIT_SUCCESS;
 #define UTOpcode(cpu, f, fname, res, resVal, flagsVal, ...) f((cpu), __VA_ARGS__);\

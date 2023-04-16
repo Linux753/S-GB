@@ -1,6 +1,8 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include <stdlib.h>
+#include <stdint.h>
 #include "emul.h"
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value);
