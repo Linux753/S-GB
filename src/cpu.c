@@ -37,7 +37,7 @@ uint8_t add_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
 }
 
 //Write the flags to theflag register, -1 for unmodified flag 
-void writeFlag(struct cpuGb* cpu, uint8_t z, uint8_t n, uint8_t h, uint8_t c){ 
+void writeFlag(struct cpuGb* cpu, int8_t z, int8_t n, int8_t h, int8_t c){ 
     if(h>=0) writeBits(cpu->flags, cpu->h, h);
 
     if(c>=0) writeBits(cpu->flags, cpu->c, c);
@@ -166,6 +166,11 @@ uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
     return regP;
 }
 
+uint8_t opcode_CB_getN(struct cpuGb* cpu, uint8_t regP){
+    regP %= 0x40;
+    regP /= 8;
+}
+
 void opcode_rlc(struct cpuGb* cpu, uint8_t * p){
     uint8_t c = extractBits(p, hiBit);
     
@@ -241,3 +246,17 @@ void opcode_srl(struct cpuGb* cpu, uint8_t *p){
     writeFlag(cpu, *p==0, 0, 0, c);
 }
 
+void opcode_bit(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeFlag(cpu, extractBits(p, ext), 0, 1, -1);
+}
+
+void opcode_set(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeBits(p, ext, 1);
+}
+
+void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeBits(p, ext, 0);
+}

@@ -367,7 +367,7 @@ void opcode_rra(struct cpuGb* cpu, uint8_t a){
 void opcode_CBprefix(struct cpuGb* cpu, uint8_t a){
     uint8_t * p;
     uint8_t regP = opcode_CB_getP(cpu, &p);
-
+    uint8_t n = opcode_CB_getN(cpu, regP);
     switch(regP&0xF8){
         case 0x00:
             opcode_rlc(cpu, p);
@@ -392,6 +392,19 @@ void opcode_CBprefix(struct cpuGb* cpu, uint8_t a){
             break;
         case 0x38:
             opcode_srl(cpu, p);
+            break;
+        default:
+            switch(regP/0x40){
+                case 1:
+                    opcode_bit(cpu, n, p);
+                    break;
+                case 2:
+                    opcode_res(cpu, n, p);
+                    break;
+                case 3:
+                    opcode_set(cpu, n, p);
+                    break;
+            }
             break;
     }
 }

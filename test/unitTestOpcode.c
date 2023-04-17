@@ -6,10 +6,18 @@
 #include "cpu.h"
 #include "opcode.h"
 #include "unitTestOpcode.h"
+#include "unitTest.h"
 
 void resetRegister(struct cpuGb* cpu){
     for(int i=0; i<REGISTER16_SIZE; i++){
         cpu->reg16[i] = 0x0000;
+    }
+}
+
+void setNextVals(struct cpuGb* cpu, uint8_t * vals, size_t nb){
+    cpu->reg16[PC] = 0;
+    for(int i = 0; i<nb; i++){
+        cpu->mem[i] = vals[i];
     }
 }
 
@@ -308,3 +316,46 @@ BEGUT(UT_opcode_srl)
     UTOpcode(cpu, opcode_srl, "SRL", &res, 0b01000000, 0, &res)
 ENDUT("SRL")
 
+BEGUT(UT_opcode_bit)
+    uint8_t res = 0b00010000;
+    uint8_t n = 4;
+    UTOpcode(cpu, opcode_bit, "BIT", &res, res, 0b10100000, n, &res); 
+ENDUT("BIT")
+
+BEGUT(UT_opcode_set)
+    uint8_t res = 0b00000000;
+    uint8_t n = 4;
+    UTOpcode(cpu, opcode_set, "SET", &res, 0b00010000, 255, n, &res); 
+ENDUT("SET")
+
+BEGUT(UT_opcode_res)
+    uint8_t res = 0b00110000;
+    uint8_t n = 5;
+    UTOpcode(cpu, opcode_res, "RES", &res, 0b00010000, 255, n, &res); 
+ENDUT("RES")
+
+BEGUT(UT_opcode_CB_getPN)
+    uint8_t *p;
+    
+    setNextVals(cpu, (uint8_t []){0x84}, 1);
+    uint8_t regP = opcode_CB_getP(cpu, &p);
+    uint8_t N = opcode_CB_getN(cpu, regP);
+    assertEgal("CB Get P/N", p, &(cpu->reg[rnH]))
+    assertEgal("CB Get P/N", N, 0)
+
+    setNextVals(cpu,(uint8_t []) {0xDB}, 1);
+    regP = opcode_CB_getP(cpu, &p);
+    N = opcode_CB_getN(cpu, regP);
+    assertEgal("CB Get P/N", p, &(cpu->reg[rnE]))
+    assertEgal("CB Get P/N", N, 3)
+
+    setNextVals(cpu,(uint8_t []) {0xFF}, 1);
+    regP = opcode_CB_getP(cpu, &p);
+    N = opcode_CB_getN(cpu, regP);
+    assertEgal("CB Get P/N", p, &(cpu->reg[rnA]))
+    assertEgal("CB Get P/N", N, 7)
+
+    setNextVals(cpu,(uint8_t []) {0x16}, 1);
+    regP = opcode_CB_getP(cpu, &p);
+    assertEgal("CB Get P", p, &(cpu->mem[cpu->reg16[HL]]))
+ENDUT("CB Get P/N")

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "unitTestOpcode.h"
 #include "emul.h"
+#include "cpu.h"
 
 int main(void){
     int ret = EXIT_SUCCESS;
@@ -24,6 +25,9 @@ int main(void){
     UT_opcode_swap(&cpu);
     UT_opcode_sra(&cpu);
     UT_opcode_srl(&cpu);
-
+    UT_opcode_bit(&cpu);
+    UT_opcode_res(&cpu);
+    UT_opcode_set(&cpu);
+    UT_opcode_CB_getPN(&cpu);
     return ret;
 }

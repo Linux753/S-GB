@@ -21,6 +21,10 @@ void opcode_OR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res);
 void opcode_XOR8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res);
 void opcode_ADD16bit(struct cpuGb* cpu, uint16_t a, uint16_t b, uint16_t *res);
 void opcode_ADDdd(struct cpuGb* cpu, uint16_t a, int8_t dd, uint16_t *res);
+
+
+uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p);
+uint8_t opcode_CB_getN(struct cpuGb* cpu, uint8_t regP);
 void opcode_rlc(struct cpuGb* cpu, uint8_t * p);
 void opcode_rl(struct cpuGb* cpu, uint8_t * p);
 void opcode_rrc(struct cpuGb* cpu, uint8_t * p);
@@ -29,5 +33,7 @@ void opcode_sla(struct cpuGb* cpu, uint8_t *p);
 void opcode_swap(struct cpuGb* cpu, uint8_t *p);
 void opcode_sra(struct cpuGb* cpu, uint8_t *p);
 void opcode_srl(struct cpuGb* cpu, uint8_t *p);
-uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p);
+void opcode_bit(struct cpuGb* cpu, uint8_t n, uint8_t *p);
+void opcode_set(struct cpuGb* cpu, uint8_t n, uint8_t *p);
+void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p);
 #endif 
