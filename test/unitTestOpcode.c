@@ -8,14 +8,9 @@
 #include "unitTestOpcode.h"
 #include "unitTest.h"
 
-void resetRegister(struct cpuGb* cpu){
-    for(int i=0; i<REGISTER16_SIZE; i++){
-        cpu->reg16[i] = 0x0000;
-    }
-}
 
 void setNextVals(struct cpuGb* cpu, uint8_t * vals, size_t nb){
-    cpu->reg16[PC] = 0;
+    *cpu->pc = 0;
     for(int i = 0; i<nb; i++){
         cpu->mem[i] = vals[i];
     }
@@ -23,7 +18,7 @@ void setNextVals(struct cpuGb* cpu, uint8_t * vals, size_t nb){
 
 int UT_writeBits(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
     writeBits(cpu->flags, cpu->c, 1);
     if(extractBits(cpu->flags, cpu->c) != 1){
         fprintf(stderr, "WriteBits to C failed\n");
@@ -37,7 +32,7 @@ int UT_writeBits(struct cpuGb* cpu){
 
 int UT_opcode_ADD8bit(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
 
     uint8_t a = 0xF0;
     uint8_t b = 0x10;
@@ -66,7 +61,7 @@ int UT_opcode_ADD8bit(struct cpuGb* cpu){
 
 int UT_opcode_ADC8bit(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
     
     writeBits(cpu->flags, cpu->c, 1);
 
@@ -99,7 +94,7 @@ int UT_opcode_ADC8bit(struct cpuGb* cpu){
 
 int UT_opcode_INC8bit(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
 
     uint8_t a = 0x0F;
     uint8_t res = 0;
@@ -114,7 +109,7 @@ int UT_opcode_INC8bit(struct cpuGb* cpu){
 
 int UT_opcode_SUB8bit(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
 
     uint8_t a = 0x00;
     uint8_t b = 0x05;
@@ -144,7 +139,7 @@ int UT_opcode_SUB8bit(struct cpuGb* cpu){
 
 int UT_opcode_SBC8bit(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
     
     writeBits(cpu->flags, cpu->c, 1);
 
@@ -177,7 +172,7 @@ int UT_opcode_SBC8bit(struct cpuGb* cpu){
 
 int UT_opcode_SCF(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
-    resetRegister(cpu);
+    initRegister(cpu);
     
     opcode_SCF(cpu, 0);
     if(extractBits(cpu->flags, cpu->c) != 1){
@@ -336,26 +331,48 @@ ENDUT("RES")
 
 BEGUT(UT_opcode_CB_getPN)
     uint8_t *p;
-    
+
     setNextVals(cpu, (uint8_t []){0x84}, 1);
     uint8_t regP = opcode_CB_getP(cpu, &p);
     uint8_t N = opcode_CB_getN(cpu, regP);
-    assertEgal("CB Get P/N", p, &(cpu->reg[rnH]))
-    assertEgal("CB Get P/N", N, 0)
+    assertEgal("CB Get P", p, &(cpu->reg[rnH]))
+    assertEgal("CB Get N", N, 0)
 
     setNextVals(cpu,(uint8_t []) {0xDB}, 1);
     regP = opcode_CB_getP(cpu, &p);
     N = opcode_CB_getN(cpu, regP);
-    assertEgal("CB Get P/N", p, &(cpu->reg[rnE]))
-    assertEgal("CB Get P/N", N, 3)
+    assertEgal("CB Get P", p, &(cpu->reg[rnE]))
+    assertEgal("CB Get N", N, 3)
 
     setNextVals(cpu,(uint8_t []) {0xFF}, 1);
     regP = opcode_CB_getP(cpu, &p);
     N = opcode_CB_getN(cpu, regP);
-    assertEgal("CB Get P/N", p, &(cpu->reg[rnA]))
-    assertEgal("CB Get P/N", N, 7)
+    assertEgal("CB Get P", p, &(cpu->reg[rnA]))
+    assertEgal("CB Get N", N, 7)
 
     setNextVals(cpu,(uint8_t []) {0x16}, 1);
     regP = opcode_CB_getP(cpu, &p);
     assertEgal("CB Get P", p, &(cpu->mem[cpu->reg16[HL]]))
 ENDUT("CB Get P/N")
+
+BEGUT(UT_opcode_jp)
+    uint16_t add = 0x0454;
+    opcode_jp(cpu, add);
+    assertEgal("JP", *cpu->pc, add)
+ENDUT("JP")
+
+BEGUT(UT_opcode_call)
+    uint16_t add = 0x0500;
+    *cpu->pc = 0x0400;
+    opcode_call(cpu, add);
+    assertEgal("CALL PC", *cpu->pc, 0x0500)
+    assertEgal("CALL SP", cpu->mem[*cpu->sp] | ((uint16_t)cpu->mem[(*cpu->sp) +1])<<8, 0x400)
+ENDUT("CALL")
+
+BEGUT(UT_opcode_ret)
+    uint16_t add = 0x0500;
+    *cpu->pc = 0x0400;
+    opcode_call(cpu, add);
+    opcode_ret(cpu);
+    assertEgal("RET", *cpu->pc, 0x400)
+ENDUT("RET")

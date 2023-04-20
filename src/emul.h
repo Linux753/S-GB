@@ -8,6 +8,8 @@
 #define OPCODE_NB 1 //TODO  
 #define REGISTER8_SIZE 8
 #define REGISTER16_SIZE 6
+
+#define STACK_INIT_ADD 0xFFFE //Source : Nintendo DMG-01 Gameboy console manual page 64
 //CPU 16 bit Register names
 #define AF 0
 #define BC 1
@@ -52,7 +54,6 @@
 
 #define CONTROL1_ADD 0xFFF0
 #define CONTROL2_ADD 0xFFF2
-#define STACK_INIT_ADD 0xFDF0
 #define INPUT_NB 16
 
 

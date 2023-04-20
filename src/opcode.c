@@ -409,4 +409,99 @@ void opcode_CBprefix(struct cpuGb* cpu, uint8_t a){
     }
 }
 
+void opcode_jp_NNNN(struct cpuGb* cpu, uint8_t a){//3 byte / C3 nn nn / 4
+    uint16_t add = readNext16U(cpu);
+    opcode_jp(cpu, add);
+}
+
+void opcode_jp_HL(struct cpuGb* cpu, uint8_t a){// 1 byte / E9 / 1 cycle
+    opcode_jp(cpu, cpu->reg16[HL]);
+}
+
+void opcode_jp_C_NNNN(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(extractBits(cpu->flags, cpu->c)) opcode_jp(cpu, add);
+}
+
+void opcode_jp_NC_NNNN(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(!extractBits(cpu->flags, cpu->c)) opcode_jp(cpu, add);
+}
+
+void opcode_jp_Z_NNNN(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(extractBits(cpu->flags, cpu->z)) opcode_jp(cpu, add);
+}
+
+void opcode_jp_NZ_NNNN(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(!extractBits(cpu->flags, cpu->z)) opcode_jp(cpu, add);
+}
+
+void opcode_jr(struct cpuGb* cpu, uint8_t a){
+    int8_t dd = (int8_t) readNext(cpu);
+    *cpu->pc = *cpu->pc + dd;
+}
+
+void opcode_jr_C(struct cpuGb* cpu, uint8_t a){
+    int8_t dd = (int8_t) readNext(cpu);
+    if(extractBits(cpu->flags, cpu->c)) *cpu->pc = *cpu->pc + dd;
+}
+
+void opcode_jr_NC(struct cpuGb* cpu, uint8_t a){
+    int8_t dd = (int8_t) readNext(cpu);
+    if(!extractBits(cpu->flags, cpu->c)) *cpu->pc = *cpu->pc + dd;
+}
+
+void opcode_jr_Z(struct cpuGb* cpu, uint8_t a){
+    int8_t dd = (int8_t) readNext(cpu);
+    if(extractBits(cpu->flags, cpu->z)) *cpu->pc = *cpu->pc + dd;
+}
+
+void opcode_jr_NZ(struct cpuGb* cpu, uint8_t a){
+    int8_t dd = (int8_t) readNext(cpu);
+    if(!extractBits(cpu->flags, cpu->z)) *cpu->pc = *cpu->pc + dd;
+}
+
+void opcode_call_NNNN(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    opcode_call(cpu, add);
+}
+
+void opcode_call_C(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(extractBits(cpu->flags, cpu->c)) opcode_call(cpu, add);
+}
+
+void opcode_call_NC(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(!extractBits(cpu->flags, cpu->c)) opcode_call(cpu, add);
+}
+
+void opcode_call_Z(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(extractBits(cpu->flags, cpu->z)) opcode_call(cpu, add);
+}
+
+void opcode_call_NZ(struct cpuGb* cpu, uint8_t a){
+    uint16_t add = readNext16U(cpu);
+    if(!extractBits(cpu->flags, cpu->z)) opcode_call(cpu, add);
+}
+
+void opcode_ret_C(struct cpuGb* cpu, uint8_t a){
+    if(extractBits(cpu->flags, cpu->c)) opcode_ret(cpu);
+}
+
+void opcode_ret_NC(struct cpuGb* cpu, uint8_t a){
+    if(!extractBits(cpu->flags, cpu->c)) opcode_ret(cpu);
+}
+
+void opcode_ret_Z(struct cpuGb* cpu, uint8_t a){
+    if(extractBits(cpu->flags, cpu->z)) opcode_ret(cpu);
+}
+
+void opcode_ret_NZ(struct cpuGb* cpu, uint8_t a){
+    if(!extractBits(cpu->flags, cpu->z)) opcode_ret(cpu);
+}
+
 

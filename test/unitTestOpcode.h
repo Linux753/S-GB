@@ -4,7 +4,8 @@
 #include "emul.h"
 
 #define BEGUT(utName) int utName(struct cpuGb* cpu){\
-    int ret = EXIT_SUCCESS;
+    int ret = EXIT_SUCCESS;\
+    initRegister(cpu);
 
 /*Make a unit test for the function f, 
 must have ret variable declared in the scope of call.
@@ -39,5 +40,7 @@ int UT_opcode_bit(struct cpuGb* cpu);
 int UT_opcode_res(struct cpuGb* cpu);
 int UT_opcode_set(struct cpuGb* cpu);
 int UT_opcode_CB_getPN(struct cpuGb* cpu);
-
+int UT_opcode_jp(struct cpuGb* cpu);
+int UT_opcode_call(struct cpuGb* cpu);
+int UT_opcode_ret(struct cpuGb* cpu);
 #endif

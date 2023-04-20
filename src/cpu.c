@@ -4,6 +4,11 @@
 struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
 struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
 
+void initRegister(struct cpuGb* cpu){
+    memset(cpu->reg, 0, sizeof(cpu->reg));
+    cpu->reg16[PC] = STACK_INIT_ADD;
+}
+
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
@@ -22,6 +27,12 @@ void initCPU(struct cpuGb * cpu){
 
 uint8_t readNext(struct cpuGb* cpu){
     return cpu->mem[(*(cpu->pc))++];
+}
+
+uint16_t readNext16U(struct cpuGb* cpu){
+    uint16_t add = readNext(cpu);
+    add |= ((uint16_t) readNext(cpu))<<8;
+    return add;
 }
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
@@ -159,7 +170,7 @@ uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
             *p = &(cpu->reg[rnA]);
             break;
         default:
-            *p = &(cpu->reg[(regP<0x07)? regP+2: regP-6]);
+            *p = &(cpu->reg[((regP&0x0F)<0x07)? (regP&0x0F)+2: (regP&0x0F)-6]);
             break;
     }
 
@@ -259,4 +270,24 @@ void opcode_set(struct cpuGb* cpu, uint8_t n, uint8_t *p){
 void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p){
     struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
     writeBits(p, ext, 0);
+}
+
+void opcode_jp(struct cpuGb* cpu, uint16_t add){
+    *cpu->pc = add;
+}
+
+//According to doc sp decrease before storing addresses so sp can be 1 location past end of available RAM
+void opcode_call(struct cpuGb* cpu, uint16_t add){
+    (*cpu->sp)--;
+    writeToAdd(cpu, *cpu->sp, ((*cpu->pc)&0xFF00)>>8);
+    (*cpu->sp)--;
+    writeToAdd(cpu, *cpu->sp, (*cpu->pc)&0x00FF);
+    *cpu->pc = add;
+}
+
+void opcode_ret(struct cpuGb* cpu){
+    *cpu->pc = ((uint16_t) readFromAdd(cpu, *cpu->sp));
+    (*cpu->sp)++;
+    *cpu->pc |= ((uint16_t) readFromAdd(cpu, *cpu->sp))<<8;
+    (*cpu->sp)++;
 }

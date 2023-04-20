@@ -7,7 +7,9 @@
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value);
 uint8_t readNext(struct cpuGb* cpu);
+uint16_t readNext16U(struct cpuGb* cpu);
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add);
+void initRegister(struct cpuGb* cpu);
 void initCPU(struct cpuGb * cpu);
 
 void opcode_ADC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res);
@@ -36,4 +38,8 @@ void opcode_srl(struct cpuGb* cpu, uint8_t *p);
 void opcode_bit(struct cpuGb* cpu, uint8_t n, uint8_t *p);
 void opcode_set(struct cpuGb* cpu, uint8_t n, uint8_t *p);
 void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p);
+
+void opcode_jp(struct cpuGb* cpu, uint16_t add);
+void opcode_call(struct cpuGb* cpu, uint16_t add);
+void opcode_ret(struct cpuGb* cpu);
 #endif 

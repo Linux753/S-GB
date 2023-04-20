@@ -29,5 +29,8 @@ int main(void){
     UT_opcode_res(&cpu);
     UT_opcode_set(&cpu);
     UT_opcode_CB_getPN(&cpu);
+    UT_opcode_jp(&cpu);
+    UT_opcode_call(&cpu);
+    UT_opcode_ret(&cpu);
     return ret;
 }
