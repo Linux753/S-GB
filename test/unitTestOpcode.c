@@ -170,23 +170,6 @@ int UT_opcode_SBC8bit(struct cpuGb* cpu){
     return ret;
 }
 
-int UT_opcode_SCF(struct cpuGb* cpu){
-    int ret = EXIT_SUCCESS;
-    initRegister(cpu);
-    
-    opcode_SCF(cpu, 0);
-    if(extractBits(cpu->flags, cpu->c) != 1){
-        fprintf(stderr, "Opcode SCF failed flag C\n");
-        ret = EXIT_FAILURE;
-    }
-
-    if(ret == EXIT_SUCCESS){
-        fprintf(stderr, "Opcode SCF 8 bit success\n");
-    }
-
-    return ret;
-}
-
 int UT_opcode_ADDdd(struct cpuGb* cpu){
     int ret = EXIT_SUCCESS;
 
@@ -376,3 +359,17 @@ BEGUT(UT_opcode_ret)
     opcode_ret(cpu);
     assertEgal("RET", *cpu->pc, 0x400)
 ENDUT("RET")
+
+BEGUT(UT_opcode_ccf)
+    opcode_ccf(cpu, 0);
+    assertEgal("CCF", *cpu->flags, 0b00010000)
+    *cpu->flags = 0b00010000;
+    opcode_ccf(cpu, 0);
+    assertEgal("CCF", *cpu->flags, 0b00000000)
+ENDUT("CCF")
+
+BEGUT(UT_opcode_DAA)
+    cpu->reg[rnA] = 0x3C;
+    opcode_DAA(cpu, 0);
+    assertEgal("DAA", cpu->reg[rnA], 0x42)
+ENDUT("DAA")

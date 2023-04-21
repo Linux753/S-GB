@@ -15,7 +15,6 @@ int main(void){
     UT_opcode_SUB8bit(&cpu);
     UT_opcode_INC8bit(&cpu);
     UT_opcode_SBC8bit(&cpu);
-    UT_opcode_SCF(&cpu);
     UT_opcode_ADDdd(&cpu);
     UT_opcode_rlc(&cpu);
     UT_opcode_rl(&cpu);
@@ -32,5 +31,7 @@ int main(void){
     UT_opcode_jp(&cpu);
     UT_opcode_call(&cpu);
     UT_opcode_ret(&cpu);
+    UT_opcode_ccf(&cpu);
+    UT_opcode_DAA(&cpu);
     return ret;
 }

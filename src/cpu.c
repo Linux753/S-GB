@@ -18,6 +18,11 @@ void initCPU(struct cpuGb * cpu){
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
     cpu->pc = (uint16_t *) &(cpu->reg16[PC]);
 
+    cpu->IME = 0;
+    cpu->IE = &(cpu->mem[IE_ADD]);
+    cpu->IF = &(cpu->mem[IF_ADD]);
+    memcpy(cpu->isrJTable, (uint8_t []) {0x40, 0x48, 0x50, 0x58, 0x60}, sizeof(cpu->isrJTable));
+
     cpu->flags = &(cpu->reg[rnF]);
     cpu->z = (struct Ext8bit) {.mask=0b10000000, .dec=7};
     cpu->n = (struct Ext8bit) {.mask=0b01000000, .dec=6};
@@ -290,4 +295,61 @@ void opcode_ret(struct cpuGb* cpu){
     (*cpu->sp)++;
     *cpu->pc |= ((uint16_t) readFromAdd(cpu, *cpu->sp))<<8;
     (*cpu->sp)++;
+}
+
+uint8_t rst_add(struct cpuGb* cpu, uint8_t a){
+    switch(a){
+        case 0xC7:
+            return 0x00;
+            break;
+        case 0xD7:
+            return 0x10;
+            break;
+        case 0xE7:
+            return 0x20;
+            break;
+        case 0xF7:
+            return 0x30;
+            break;
+        case 0xCF:
+            return 0x08;
+            break;
+        case 0xDF:
+            return 0x18;
+            break;
+        case 0xEF:
+            return 0x28;
+            break;
+        case 0xFF:
+            return 0x38;
+            break;
+        default:
+            fprintf(stderr, "Error: bad RST opcode\n");
+            break;
+    }
+}
+
+//For the moment don't take on account the precise timing of interrut handling
+bool ISR(struct cpuGb* cpu){
+    uint8_t hInter = ((*cpu->IE)&0x1F)&((*cpu->IF)&0x1F);
+    if(hInter){
+        if(cpu->IME){
+            struct Ext8bit ext = {.dec = 0, .mask=1};
+            int i =0;
+            //Taking account of the interrupt priorities
+            while(!extractBits(&hInter, ext)){ 
+                i++;
+                ext.dec++;
+                ext.mask<<1;
+            }
+
+            writeBits(cpu->IF, ext, 0);
+            cpu->IME = 0;
+            opcode_call(cpu, cpu->isrJTable[i]);
+        }
+        return true;
+    }
+    else{
+        return false;
+    }
 }

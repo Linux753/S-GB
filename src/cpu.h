@@ -11,6 +11,7 @@ uint16_t readNext16U(struct cpuGb* cpu);
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add);
 void initRegister(struct cpuGb* cpu);
 void initCPU(struct cpuGb * cpu);
+void writeFlag(struct cpuGb* cpu, int8_t z, int8_t n, int8_t h, int8_t c);
 
 void opcode_ADC8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res);
 void opcode_ADD8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res);
@@ -42,4 +43,7 @@ void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p);
 void opcode_jp(struct cpuGb* cpu, uint16_t add);
 void opcode_call(struct cpuGb* cpu, uint16_t add);
 void opcode_ret(struct cpuGb* cpu);
+
+uint8_t rst_add(struct cpuGb* cpu, uint8_t a);
+bool ISR(struct cpuGb* cpu);
 #endif 

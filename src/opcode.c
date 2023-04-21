@@ -293,22 +293,11 @@ void opcode_XOR_n(struct cpuGb* cpu, uint8_t a){//1 byte / 0b11101110 / 2 cycle
     opcode_XOR8bit(cpu, cpu->reg[rnA], n, &(cpu->reg[rnA]));
 }
 
-void opcode_CCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00111111 / 1 cycle
-    uint8_t c = extractBits(cpu->flags, cpu->c);
-    writeBits(cpu->flags, cpu->c, ~c);
-
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
-}
-
 void opcode_DAA(struct cpuGb* cpu, uint8_t a){
-    //TODO
-}
+    if((cpu->reg[rnA]&0x0F) > 0x09 || extractBits(cpu->flags, cpu->h)) cpu->reg[rnA] += 0x06;
+    if((cpu->reg[rnA]&0xF0) > 0x90 || extractBits(cpu->flags, cpu->c)) cpu->reg[rnA] += 0x60;
 
-void opcode_SCF(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00110111 / 1 cycle
-    writeBits(cpu->flags, cpu->c, 1);
-    writeBits(cpu->flags, cpu->n, 0);
-    writeBits(cpu->flags, cpu->h, 0);
+    writeFlag(cpu, cpu->reg[rnA] == 0, -1, 0, (extractBits(cpu->flags, cpu->n) == 0)&&(cpu->reg[rnA]>0x99)? 1:0);
 }
 
 void opcode_CPL(struct cpuGb* cpu, uint8_t a){// 1 byte / 0b00101111 / 1 cycle
@@ -504,4 +493,45 @@ void opcode_ret_NZ(struct cpuGb* cpu, uint8_t a){
     if(!extractBits(cpu->flags, cpu->z)) opcode_ret(cpu);
 }
 
+void opcode_di(struct cpuGb* cpu, uint8_t a){ // 1 byte / F3 / 1 cycle
+    cpu->IME = 0;
+}
 
+void opcode_ei(struct cpuGb* cpu, uint8_t a){// 1 byte / FB / 1 cycle
+    cpu->IME = 1;
+}
+
+void opcode_ccf(struct cpuGb* cpu, uint8_t a){// 1 byte / 3F / 1 cycle
+    uint8_t c = (extractBits(cpu->flags, cpu->c)^1);
+    writeFlag(cpu, -1, 0, 0, c);
+}
+
+void opcode_scf(struct cpuGb* cpu, uint8_t a){ // 1 byte/ 3F / 1 cycle
+    writeFlag(cpu, -1, 0, 0, 1);
+}
+
+void opcode_nop(struct cpuGb* cpu, uint8_t a){ // 1 byte / 00 / 1 cycle
+
+}
+
+void opcode_reti(struct cpuGb* cpu, uint8_t a){ // 1 byte / D9 / 1 cycle
+    cpu->IME = 1;
+    opcode_ret(cpu);
+}
+
+void opcode_rst(struct cpuGb* cpu, uint8_t a){ // 1 byte / xx / 4 cycle
+    opcode_call(cpu, rst_add(cpu, a));
+}
+
+//For the moment not implementing the "halt bug"
+void opcode_halt(struct cpuGb* cpu, uint8_t a){// 1 byte
+    if(!ISR(cpu)) (*cpu->pc)--;
+}
+
+void opcode_stop(struct cpuGb* cpu, uint8_t a){// 2 byte // 10 XX (the XX part is ignored)
+    fprintf(stderr, "STOP instructioàn used, not commmon\n");
+    struct Ext8bit ext = {.dec = 4, .mask = 0b00010000};
+    uint8_t hInter = ((*cpu->IE)&0x1F)&((*cpu->IF)&0x1F);
+    if(!extractBits(&hInter, ext)) (*cpu->pc)--;
+    else (*cpu->pc)++;
+}

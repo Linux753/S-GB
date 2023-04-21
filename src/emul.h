@@ -9,6 +9,8 @@
 #define REGISTER8_SIZE 8
 #define REGISTER16_SIZE 6
 
+#define IE_ADD 0xFFFF
+#define IF_ADD 0xFF0F
 #define STACK_INIT_ADD 0xFFFE //Source : Nintendo DMG-01 Gameboy console manual page 64
 //CPU 16 bit Register names
 #define AF 0
@@ -120,6 +122,12 @@ struct cpuGb{
 
     uint16_t * sp;
     uint16_t * pc;
+
+    //Interrupt relative variable
+    uint8_t IME;
+    uint8_t * IE;
+    uint8_t * IF;
+    uint8_t isrJTable[5];
 
     uint8_t * flags;
     struct Ext8bit z; //Zero flag

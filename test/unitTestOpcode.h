@@ -25,7 +25,6 @@ int UT_opcode_ADC8bit(struct cpuGb* cpu);
 int UT_opcode_SUB8bit(struct cpuGb* cpu);
 int UT_opcode_INC8bit(struct cpuGb* cpu);
 int UT_opcode_SBC8bit(struct cpuGb* cpu);
-int UT_opcode_SCF(struct cpuGb* cpu);
 int UT_writeBits(struct cpuGb* cpu);
 int UT_opcode_ADDdd(struct cpuGb* cpu);
 int UT_opcode_rlc(struct cpuGb* cpu);
@@ -43,4 +42,6 @@ int UT_opcode_CB_getPN(struct cpuGb* cpu);
 int UT_opcode_jp(struct cpuGb* cpu);
 int UT_opcode_call(struct cpuGb* cpu);
 int UT_opcode_ret(struct cpuGb* cpu);
+int UT_opcode_ccf(struct cpuGb* cpu);
+int UT_opcode_DAA(struct cpuGb* cpu);
 #endif
