@@ -373,3 +373,23 @@ BEGUT(UT_opcode_DAA)
     opcode_DAA(cpu, 0);
     assertEgal("DAA", cpu->reg[rnA], 0x42)
 ENDUT("DAA")
+
+BEGUT(UT_opcode_LD_X_nn)
+    setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
+    opcode_LD_X_nn(cpu, 0x01);
+    assertEgal("LD X nn", cpu->reg16[BC], 0x4477)
+    setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
+    opcode_LD_X_nn(cpu, 0x11);
+    assertEgal("LD X nn", cpu->reg16[DE], 0x4477)
+    setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
+    opcode_LD_X_nn(cpu, 0x21);
+    assertEgal("LD X nn", cpu->reg16[HL], 0x4477)
+    setNextVals(cpu, (uint8_t []) {0x67, 0x43}, 2);
+    opcode_LD_X_nn(cpu, 0x21);
+    assertEgal("LD X nn", cpu->reg16[SP], 0x4367)
+ENDUT("LD X nn")
+
+BEGUT(UT_opcode_INC_X)
+    opcode_INC_X(cpu, 0x14);
+    assertEgal("INC X", cpu->reg[rnD], 0x01);
+ENDUT("INC X")

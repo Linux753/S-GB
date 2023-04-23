@@ -5,6 +5,12 @@
 #include <stdint.h>
 #include "emul.h"
 
+//To get register from the opcode for opcode from 0x00 to 0x3F
+#define getReg8bit1(cpu, a) ((((a)&0XF0) == 0X30)? rnA : ((a)&0x08)? ((a)&0xF0>>4)*2 + 3 : ((a)&0xF0>>4)*2 + 2)
+#define getReg16bit1(cpu, a) (((0xF0&(a))>>4) + 1)
+#define getRegX_LD_X_Y(cpu, a) (((a)&0xF8)==0x78? rnA : ((((a)&0xF8)-0x40)/(0x08) + 1))
+#define getRegY_LD_X_Y(cpu, a) (((a)&0x07)==0x07? rnA : ((a)&0x07) + 1)
+
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value);
 uint8_t readNext(struct cpuGb* cpu);
 uint16_t readNext16U(struct cpuGb* cpu);

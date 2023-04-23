@@ -4,8 +4,8 @@
 
 
 #define MEMORY_SIZE 65536
-#define CURSOR0 1 //TODO
-#define OPCODE_NB 1 //TODO  
+#define CURSOR0 0 //TODO
+#define OPCODE_NB 256 //TODO  
 #define REGISTER8_SIZE 8
 #define REGISTER16_SIZE 6
 
@@ -110,11 +110,6 @@ struct Ext16bit{
     uint8_t dec;
 };
 
-struct SJump{
-    uint32_t mask;
-    uint8_t id[OPCODE_NB];
-};
-
 struct cpuGb{
     uint8_t mem[MEMORY_SIZE]; //Memory size to adjust !!!
     uint8_t reg[REGISTER16_SIZE * 2]; 
@@ -122,6 +117,8 @@ struct cpuGb{
 
     uint16_t * sp;
     uint16_t * pc;
+
+    void (*opTble[OPCODE_NB])(struct cpuGb*, uint8_t);
 
     //Interrupt relative variable
     uint8_t IME;
@@ -348,9 +345,6 @@ struct Chip16{
     //Rendering    
     struct PPU ppu; //Picture Processing Unit : struct managing registers relative to the rendering
     struct Screen screen; //struct managing the rendering of the emulator in itself
-
-    struct SJump jumpTable;
-    void (*opcodeFcts[OPCODE_NB])(struct Chip16 *, uint8_t, uint8_t, uint8_t);
 };
 
 

@@ -63,6 +63,21 @@ void writeFlag(struct cpuGb* cpu, int8_t z, int8_t n, int8_t h, int8_t c){
     if(z>=0) writeBits(cpu->flags, cpu->z, z);
 }
 
+/*void getRegLD_X_Y(struct cpuGb* cpu, uint8_t a, uint8_t * x, uint8_t * y){
+    switch(a&0xF8){
+        case 0x40:
+            *x = rnB;
+            break;
+        case 0x48:
+            *x = rnC;
+            break;
+        case 0x50:
+            *x = rnD;
+            break;
+        case 0x58:
+    }
+}*/
+
 void opcode_ADD8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
     uint8_t h = add_lowOverflow8bit(cpu, a, b);
 
