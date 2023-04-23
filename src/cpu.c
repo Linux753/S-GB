@@ -4,6 +4,11 @@
 struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
 struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
 
+void initRegister(struct cpuGb* cpu){
+    memset(cpu->reg, 0, sizeof(cpu->reg));
+    cpu->reg16[PC] = STACK_INIT_ADD;
+}
+
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
@@ -12,6 +17,11 @@ void initCPU(struct cpuGb * cpu){
 
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
     cpu->pc = (uint16_t *) &(cpu->reg16[PC]);
+
+    cpu->IME = 0;
+    cpu->IE = &(cpu->mem[IE_ADD]);
+    cpu->IF = &(cpu->mem[IF_ADD]);
+    memcpy(cpu->isrJTable, (uint8_t []) {0x40, 0x48, 0x50, 0x58, 0x60}, sizeof(cpu->isrJTable));
 
     cpu->flags = &(cpu->reg[rnF]);
     cpu->z = (struct Ext8bit) {.mask=0b10000000, .dec=7};
@@ -22,6 +32,12 @@ void initCPU(struct cpuGb * cpu){
 
 uint8_t readNext(struct cpuGb* cpu){
     return cpu->mem[(*(cpu->pc))++];
+}
+
+uint16_t readNext16U(struct cpuGb* cpu){
+    uint16_t add = readNext(cpu);
+    add |= ((uint16_t) readNext(cpu))<<8;
+    return add;
 }
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
@@ -37,7 +53,7 @@ uint8_t add_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
 }
 
 //Write the flags to theflag register, -1 for unmodified flag 
-void writeFlag(struct cpuGb* cpu, uint8_t z, uint8_t n, uint8_t h, uint8_t c){ 
+void writeFlag(struct cpuGb* cpu, int8_t z, int8_t n, int8_t h, int8_t c){ 
     if(h>=0) writeBits(cpu->flags, cpu->h, h);
 
     if(c>=0) writeBits(cpu->flags, cpu->c, c);
@@ -46,6 +62,21 @@ void writeFlag(struct cpuGb* cpu, uint8_t z, uint8_t n, uint8_t h, uint8_t c){
     
     if(z>=0) writeBits(cpu->flags, cpu->z, z);
 }
+
+/*void getRegLD_X_Y(struct cpuGb* cpu, uint8_t a, uint8_t * x, uint8_t * y){
+    switch(a&0xF8){
+        case 0x40:
+            *x = rnB;
+            break;
+        case 0x48:
+            *x = rnC;
+            break;
+        case 0x50:
+            *x = rnD;
+            break;
+        case 0x58:
+    }
+}*/
 
 void opcode_ADD8bit(struct cpuGb* cpu, uint8_t a, uint8_t b, uint8_t *res){
     uint8_t h = add_lowOverflow8bit(cpu, a, b);
@@ -159,11 +190,16 @@ uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
             *p = &(cpu->reg[rnA]);
             break;
         default:
-            *p = &(cpu->reg[(regP<0x07)? regP+2: regP-6]);
+            *p = &(cpu->reg[((regP&0x0F)<0x07)? (regP&0x0F)+2: (regP&0x0F)-6]);
             break;
     }
 
     return regP;
+}
+
+uint8_t opcode_CB_getN(struct cpuGb* cpu, uint8_t regP){
+    regP %= 0x40;
+    regP /= 8;
 }
 
 void opcode_rlc(struct cpuGb* cpu, uint8_t * p){
@@ -241,3 +277,95 @@ void opcode_srl(struct cpuGb* cpu, uint8_t *p){
     writeFlag(cpu, *p==0, 0, 0, c);
 }
 
+void opcode_bit(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeFlag(cpu, extractBits(p, ext), 0, 1, -1);
+}
+
+void opcode_set(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeBits(p, ext, 1);
+}
+
+void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p){
+    struct Ext8bit ext = (struct Ext8bit) {.mask = 0x01<<n, .dec = n};
+    writeBits(p, ext, 0);
+}
+
+void opcode_jp(struct cpuGb* cpu, uint16_t add){
+    *cpu->pc = add;
+}
+
+//According to doc sp decrease before storing addresses so sp can be 1 location past end of available RAM
+void opcode_call(struct cpuGb* cpu, uint16_t add){
+    (*cpu->sp)--;
+    writeToAdd(cpu, *cpu->sp, ((*cpu->pc)&0xFF00)>>8);
+    (*cpu->sp)--;
+    writeToAdd(cpu, *cpu->sp, (*cpu->pc)&0x00FF);
+    *cpu->pc = add;
+}
+
+//The argument a is unused, just here for usage in the opcode table
+void opcode_ret(struct cpuGb* cpu, uint8_t a){
+    *cpu->pc = ((uint16_t) readFromAdd(cpu, *cpu->sp));
+    (*cpu->sp)++;
+    *cpu->pc |= ((uint16_t) readFromAdd(cpu, *cpu->sp))<<8;
+    (*cpu->sp)++;
+}
+
+uint8_t rst_add(struct cpuGb* cpu, uint8_t a){
+    switch(a){
+        case 0xC7:
+            return 0x00;
+            break;
+        case 0xD7:
+            return 0x10;
+            break;
+        case 0xE7:
+            return 0x20;
+            break;
+        case 0xF7:
+            return 0x30;
+            break;
+        case 0xCF:
+            return 0x08;
+            break;
+        case 0xDF:
+            return 0x18;
+            break;
+        case 0xEF:
+            return 0x28;
+            break;
+        case 0xFF:
+            return 0x38;
+            break;
+        default:
+            fprintf(stderr, "Error: bad RST opcode\n");
+            break;
+    }
+}
+
+//For the moment don't take on account the precise timing of interrut handling
+bool ISR(struct cpuGb* cpu){
+    uint8_t hInter = ((*cpu->IE)&0x1F)&((*cpu->IF)&0x1F);
+    if(hInter){
+        if(cpu->IME){
+            struct Ext8bit ext = {.dec = 0, .mask=1};
+            int i =0;
+            //Taking account of the interrupt priorities
+            while(!extractBits(&hInter, ext)){ 
+                i++;
+                ext.dec++;
+                ext.mask<<1;
+            }
+
+            writeBits(cpu->IF, ext, 0);
+            cpu->IME = 0;
+            opcode_call(cpu, cpu->isrJTable[i]);
+        }
+        return true;
+    }
+    else{
+        return false;
+    }
+}

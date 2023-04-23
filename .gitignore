@@ -10,3 +10,4 @@ config.*
 configure
 configure~
 stamp-h1
+*.a

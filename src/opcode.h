@@ -56,9 +56,9 @@ void opcode_OR_n(struct cpuGb* cpu, uint8_t a);
 void opcode_XOR_X(struct cpuGb* cpu, uint8_t a);
 void opcocde_XOR_HL(struct cpuGb* cpu, uint8_t a);
 void opcode_XOR_n(struct cpuGb* cpu, uint8_t a);
-void opcode_CCF(struct cpuGb* cpu, uint8_t a);
-void opcode_SCF(struct cpuGb* cpu, uint8_t a);
 void opcode_CPL(struct cpuGb* cpu, uint8_t a);
 
 
+void opcode_ccf(struct cpuGb* cpu, uint8_t a);
+void opcode_DAA(struct cpuGb* cpu, uint8_t a);
 #endif

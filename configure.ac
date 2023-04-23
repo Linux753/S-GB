@@ -7,7 +7,7 @@ AC_SUBST([SDL2LIB])
 AC_CHECK_LIB([math], [sin], [MATHLIB=-lm])
 AC_SUBST([MATHLIB])
 
-AM_INIT_AUTOMAKE([foreign -Wall])
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 AM_PROG_AR
 AC_PROG_RANLIB
