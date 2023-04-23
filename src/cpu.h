@@ -6,10 +6,10 @@
 #include "emul.h"
 
 //To get register from the opcode for opcode from 0x00 to 0x3F
-#define getReg8bit1(cpu, a) ((((a)&0XF0) == 0X30)? rnA : ((a)&0x08)? ((a)&0xF0>>4)*2 + 3 : ((a)&0xF0>>4)*2 + 2)
+#define getReg8bit1(cpu, a) ((((a)&0XF0) == 0x30)? rnA : ((a)&0x08)? (((a)&0xF0)>>4)*2 + 3 : (((a)&0xF0)>>4)*2 + 2)
 #define getReg16bit1(cpu, a) (((0xF0&(a))>>4) + 1)
-#define getRegX_LD_X_Y(cpu, a) (((a)&0xF8)==0x78? rnA : ((((a)&0xF8)-0x40)/(0x08) + 1))
-#define getRegY_LD_X_Y(cpu, a) (((a)&0x07)==0x07? rnA : ((a)&0x07) + 1)
+#define getRegX_LD_X_Y(cpu, a) (((a)&0xF8)==0x78? rnA : ((((a)&0xF8)-0x40)/(0x08) + 2))
+#define getRegY_LD_X_Y(cpu, a) (((a)&0x07)==0x07? rnA : ((a)&0x07) + 2)
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value);
 uint8_t readNext(struct cpuGb* cpu);
@@ -48,7 +48,7 @@ void opcode_res(struct cpuGb* cpu, uint8_t n, uint8_t *p);
 
 void opcode_jp(struct cpuGb* cpu, uint16_t add);
 void opcode_call(struct cpuGb* cpu, uint16_t add);
-void opcode_ret(struct cpuGb* cpu);
+void opcode_ret(struct cpuGb* cpu, uint8_t a);
 
 uint8_t rst_add(struct cpuGb* cpu, uint8_t a);
 bool ISR(struct cpuGb* cpu);

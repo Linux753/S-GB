@@ -44,4 +44,10 @@ int UT_opcode_call(struct cpuGb* cpu);
 int UT_opcode_ret(struct cpuGb* cpu);
 int UT_opcode_ccf(struct cpuGb* cpu);
 int UT_opcode_DAA(struct cpuGb* cpu);
+int UT_getReg8bit1(struct cpuGb* cpu);
+int UT_opcode_LD_X_nn(struct cpuGb* cpu);
+int UT_opcode_INC_X(struct cpuGb* cpu);
+int UT_getReg16bit1(struct cpuGb* cpu);
+int UT_getRegX_LD_X_Y(struct cpuGb* cpu);
+int UT_getRegY_LD_X_Y(struct cpuGb* cpu);
 #endif

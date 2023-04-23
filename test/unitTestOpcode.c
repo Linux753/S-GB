@@ -356,7 +356,7 @@ BEGUT(UT_opcode_ret)
     uint16_t add = 0x0500;
     *cpu->pc = 0x0400;
     opcode_call(cpu, add);
-    opcode_ret(cpu);
+    opcode_ret(cpu, 0);
     assertEgal("RET", *cpu->pc, 0x400)
 ENDUT("RET")
 
@@ -378,14 +378,17 @@ BEGUT(UT_opcode_LD_X_nn)
     setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
     opcode_LD_X_nn(cpu, 0x01);
     assertEgal("LD X nn", cpu->reg16[BC], 0x4477)
+
     setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
     opcode_LD_X_nn(cpu, 0x11);
     assertEgal("LD X nn", cpu->reg16[DE], 0x4477)
+    
     setNextVals(cpu, (uint8_t []) {0x77, 0x44}, 2);
     opcode_LD_X_nn(cpu, 0x21);
     assertEgal("LD X nn", cpu->reg16[HL], 0x4477)
+    
     setNextVals(cpu, (uint8_t []) {0x67, 0x43}, 2);
-    opcode_LD_X_nn(cpu, 0x21);
+    opcode_LD_X_nn(cpu, 0x31);
     assertEgal("LD X nn", cpu->reg16[SP], 0x4367)
 ENDUT("LD X nn")
 
@@ -393,3 +396,44 @@ BEGUT(UT_opcode_INC_X)
     opcode_INC_X(cpu, 0x14);
     assertEgal("INC X", cpu->reg[rnD], 0x01);
 ENDUT("INC X")
+
+BEGUT(UT_getReg8bit1)
+    assertEgal("GetReg 8 bit 1", getReg8bit1(cpu, 0x25), rnH);
+
+    assertEgal("GetReg 8 bit 1", getReg8bit1(cpu, 0x06), rnB);
+
+    assertEgal("GetReg 8 bit 1", getReg8bit1(cpu, 0x56 - 0x40), rnD);
+
+    assertEgal("GetReg 8 bit 1", getReg8bit1(cpu, 0x2C), rnL);
+
+    assertEgal("GetReg 8 bit 1", getReg8bit1(cpu, 0x3D), rnA);
+ENDUT("Get Reg 8 bit 1")
+
+BEGUT(UT_getReg16bit1)
+    assertEgal("GetReg 16 bit 1", getReg16bit1(cpu, 0x11), DE);
+
+    assertEgal("GetReg 16 bit 1", getReg16bit1(cpu, 0x2B), HL);
+
+    assertEgal("GetReg 16 bit 1", getReg16bit1(cpu, 0x09), BC);
+
+    assertEgal("GetReg 16 bit 1", getReg16bit1(cpu, 0x33), SP);
+ENDUT("Get Reg 16 bit 1")
+
+BEGUT(UT_getRegX_LD_X_Y)
+    assertEgal("Get Reg X LD X Y", getRegX_LD_X_Y(cpu, 0x54), rnD);
+
+    assertEgal("Get Reg X LD X Y", getRegX_LD_X_Y(cpu, 0x7A), rnA);
+
+    assertEgal("Get Reg X LD X Y", getRegX_LD_X_Y(cpu, 0x6F), rnL);
+ENDUT("Get Reg X LD X Y")
+
+BEGUT(UT_getRegY_LD_X_Y)
+    assertEgal("Get Reg Y LD X Y", getRegY_LD_X_Y(cpu, 0x7C), rnH);
+
+    assertEgal("Get Reg Y LD X Y", getRegY_LD_X_Y(cpu, 0x57), rnA);
+
+    assertEgal("Get Reg Y LD X Y", getRegY_LD_X_Y(cpu, 0x9B), rnE);
+
+    assertEgal("Get Reg Y LD X Y", getRegY_LD_X_Y(cpu, 0xA1), rnC);
+ENDUT("Get Reg Y LD X Y")
+

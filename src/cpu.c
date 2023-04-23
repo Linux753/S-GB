@@ -305,7 +305,8 @@ void opcode_call(struct cpuGb* cpu, uint16_t add){
     *cpu->pc = add;
 }
 
-void opcode_ret(struct cpuGb* cpu){
+//The argument a is unused, just here for usage in the opcode table
+void opcode_ret(struct cpuGb* cpu, uint8_t a){
     *cpu->pc = ((uint16_t) readFromAdd(cpu, *cpu->sp));
     (*cpu->sp)++;
     *cpu->pc |= ((uint16_t) readFromAdd(cpu, *cpu->sp))<<8;

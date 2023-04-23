@@ -478,19 +478,19 @@ void opcode_call_NZ(struct cpuGb* cpu, uint8_t a){
 }
 
 void opcode_ret_C(struct cpuGb* cpu, uint8_t a){
-    if(extractBits(cpu->flags, cpu->c)) opcode_ret(cpu);
+    if(extractBits(cpu->flags, cpu->c)) opcode_ret(cpu, a);
 }
 
 void opcode_ret_NC(struct cpuGb* cpu, uint8_t a){
-    if(!extractBits(cpu->flags, cpu->c)) opcode_ret(cpu);
+    if(!extractBits(cpu->flags, cpu->c)) opcode_ret(cpu, a);
 }
 
 void opcode_ret_Z(struct cpuGb* cpu, uint8_t a){
-    if(extractBits(cpu->flags, cpu->z)) opcode_ret(cpu);
+    if(extractBits(cpu->flags, cpu->z)) opcode_ret(cpu, a);
 }
 
 void opcode_ret_NZ(struct cpuGb* cpu, uint8_t a){
-    if(!extractBits(cpu->flags, cpu->z)) opcode_ret(cpu);
+    if(!extractBits(cpu->flags, cpu->z)) opcode_ret(cpu, a);
 }
 
 void opcode_di(struct cpuGb* cpu, uint8_t a){ // 1 byte / F3 / 1 cycle
@@ -516,7 +516,7 @@ void opcode_nop(struct cpuGb* cpu, uint8_t a){ // 1 byte / 00 / 1 cycle
 
 void opcode_reti(struct cpuGb* cpu, uint8_t a){ // 1 byte / D9 / 1 cycle
     cpu->IME = 1;
-    opcode_ret(cpu);
+    opcode_ret(cpu, a);
 }
 
 void opcode_rst(struct cpuGb* cpu, uint8_t a){ // 1 byte / xx / 4 cycle
@@ -656,7 +656,7 @@ void init_opcodeTable(struct cpuGb* cpu){
     cpu->opTble[0xC0] = opcode_ret_NZ;
     cpu->opTble[0xC1] = opcode_POP_X;
     cpu->opTble[0xC2] = opcode_jp_NZ_NNNN;
-    cpu->opTble[0xC3] = opcode_jp;
+    cpu->opTble[0xC3] = opcode_jp_NNNN;
     cpu->opTble[0xC4] = opcode_call_NZ;
     cpu->opTble[0xC5] = opcode_PUSH_X;
     cpu->opTble[0xC6] = opcode_ADD_n;
@@ -666,7 +666,7 @@ void init_opcodeTable(struct cpuGb* cpu){
     cpu->opTble[0xCA] = opcode_jp_Z_NNNN;
     cpu->opTble[0xCB] = opcode_CBprefix;
     cpu->opTble[0xCC] = opcode_call_Z;
-    cpu->opTble[0xCD] = opcode_call;
+    cpu->opTble[0xCD] = opcode_call_NNNN;
     cpu->opTble[0xCE] = opcode_ADC_n;
     cpu->opTble[0xCF] = opcode_rst;
     cpu->opTble[0xD0] = opcode_ret_NC;

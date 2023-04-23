@@ -33,5 +33,11 @@ int main(void){
     UT_opcode_ret(&cpu);
     UT_opcode_ccf(&cpu);
     UT_opcode_DAA(&cpu);
+    UT_getReg8bit1(&cpu);
+    UT_getReg16bit1(&cpu);
+    UT_getRegX_LD_X_Y(&cpu);
+    UT_getRegY_LD_X_Y(&cpu);
+    UT_opcode_INC_X(&cpu);
+    UT_opcode_LD_X_nn(&cpu);
     return ret;
 }
