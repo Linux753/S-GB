@@ -37,20 +37,6 @@
 #define extractBits(p, extractor) (((*(p))&((extractor).mask))>>(extractor.dec)) 
 #define writeBits(p, extractor, value) (*(p) = (*(p) & ~(((extractor.mask)>>extractor.dec)<<extractor.dec)) | ((value)<<(extractor.dec)))
 
-/////////////Screen constant and register address///////////////////
-//#define PIXEL_DIM 4
-#define PIXEL_BY_WIDTH 320
-#define PIXEL_BY_HEIGHT 240
-//#define SCREEN_WIDTH PIXEL_BY_WIDTH*PIXEL_DIM
-//#define SCREEN_HEIGHT PIXEL_BY_HEIGHT*PIXEL_DIM
-#define PALETTE_SIZE 16
-//#define SPF 16 //Ms by frame
-//#define FREQUENCY 1000 //Expressed in ms^-1
-#define RENDER_OAM 0xFE00
-#define RENDER_OAMSIZE 0xA0
-#define RENDER_SPRITETD 0x8000
-#define RENDER_SPRITETDSIZE 0x1000
-
 
 
 
@@ -131,36 +117,6 @@ struct cpuGb{
     struct Ext8bit n; //Substraction flag
     struct Ext8bit h; //Half Carry Flag
     struct Ext8bit c; //Carry Flag
-};
-
-struct PPU{
-    //Bg & Window 
-    uint8_t * vramTD; //VRAM Tiles Data
-    size_t sizeVramTD;
-    uint8_t * vramTM; //VRAM Tiles Map
-    size_t sizeVramTM;
-
-    //Sprite:
-    uint8_t * spriteTD; //Sprites Tiles Data
-    size_t sizeSpriteTD;
-    uint8_t * OAM; //Object Attributes Memory
-    size_t sizeOAM;
-};
-
-struct Screen{
-    SDL_Window * window;
-    SDL_Renderer * renderer;
-    
-
-    uint32_t pixelHeight;
-    uint32_t pixelWidth;
-
-    uint32_t nextRefresh;
-    
-    uint8_t bg;
-    uint8_t fg[PIXEL_BY_WIDTH][PIXEL_BY_HEIGHT];
-
-    SDL_Color palette[PALETTE_SIZE];
 };
 
 struct Control{
