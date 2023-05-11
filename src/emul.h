@@ -37,7 +37,8 @@
 //TODO : Remake the extract bit function to take in account the non perfect mask
 #define extractBits(p, extractor) (((*(p))&((extractor).mask))>>(extractor.dec)) 
 #define writeBits(p, extractor, value) (*(p) = (*(p) & ~(((extractor.mask)>>extractor.dec)<<extractor.dec)) | ((value)<<(extractor.dec)))
-
+//Extract the bit N of the pointer N, only work on 1 byte data
+#define extractBitsN(p, n) ((*(p)) & (0xFF>>(7-(n))))>>(n)
 
 
 
