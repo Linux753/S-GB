@@ -8,7 +8,7 @@
 #include "unitTestOpcode.h"
 #include "unitTest.h"
 
-
+//TODO : Test ISR 
 void setNextVals(struct cpuGb* cpu, uint8_t * vals, size_t nb){
     *cpu->pc = 0;
     for(int i = 0; i<nb; i++){
