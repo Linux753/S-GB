@@ -369,3 +369,5 @@ bool ISR(struct cpuGb* cpu){
         return false;
     }
 }
+
+//TODO : write execute function // doin't forget to take in account BANK register at $FF50

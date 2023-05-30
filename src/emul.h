@@ -2,6 +2,7 @@
 #define EMUL_H
 
 
+#define BOOTROM_SIZE 0x0100 
 
 #define MEMORY_SIZE 65536
 #define CURSOR0 0 //TODO
@@ -100,6 +101,12 @@
 #include <stdbool.h>
 #include <portaudio.h>
 
+
+//For the moment only support DMG and MGB
+enum console{
+    DMG, MGB, SGB, CGB, AGB
+};
+
 struct Ext8bit{
     uint8_t mask;
     uint8_t dec;
@@ -111,9 +118,11 @@ struct Ext16bit{
 };
 
 struct cpuGb{
+    uint8_t bootROM[BOOTROM_SIZE];
     uint8_t mem[MEMORY_SIZE]; //Memory size to adjust !!!
     uint8_t reg[REGISTER16_SIZE * 2]; 
     uint16_t * reg16;
+
 
     uint16_t * sp;
     uint16_t * pc;
@@ -338,9 +347,25 @@ struct Sound{
     struct Ext8bit volRight;
 };
 
+enum MBC{
+    ROM,MBC1,MBC2,MBC3,MBC5,MBC6,MBC7,MMM01,M161,HuC1,HuC3,unknown
+};
+
+struct MetadataROM{
+    char title[17]; //Max title size : 16 
+    unsigned int ROMBank; //16 KiB / ROM Bank
+    unsigned int RAMBank; // 8 KiB / RAM Bank
+    enum MBC mbc;
+
+    uint16_t licenseeCode;
+
+};
+
 struct Chip16{
     struct cpuGb cpu;
     struct Control control;
+
+    struct MetadataROM metadataROM;
 
     //Rendering    
     struct PPU ppu; //Picture Processing Unit : struct managing registers relative to the rendering
