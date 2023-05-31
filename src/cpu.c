@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "emul.h"
+#include "cpu.h"
+#include "opcode.h"
 
 struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
 struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
@@ -12,11 +14,15 @@ void initRegister(struct cpuGb* cpu){
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
+    memset(cpu->bootROM, 0, sizeof(BOOTROM_SIZE));
+    cpu->workingROM = cpu->bootROM;
 
     cpu->reg16 = (uint16_t *) cpu->reg;
 
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
     cpu->pc = (uint16_t *) &(cpu->reg16[PC]);
+
+    init_opcodeTable(cpu);
 
     cpu->IME = 0;
     cpu->IE = &(cpu->mem[IE_ADD]);
@@ -31,7 +37,7 @@ void initCPU(struct cpuGb * cpu){
 }
 
 uint8_t readNext(struct cpuGb* cpu){
-    return cpu->mem[(*(cpu->pc))++];
+    return cpu->workingROM[(*(cpu->pc))++];
 }
 
 uint16_t readNext16U(struct cpuGb* cpu){
@@ -41,11 +47,11 @@ uint16_t readNext16U(struct cpuGb* cpu){
 }
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
-    cpu->mem[add] = value;
+    cpu->workingROM[add] = value;
 }
 
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
-    return cpu->mem[add];
+    return cpu->workingROM[add];
 }
 
 uint8_t add_lowOverflow8bit(struct cpuGb* cpu, uint8_t a, uint8_t b){
@@ -183,7 +189,7 @@ uint8_t opcode_CB_getP(struct cpuGb* cpu, uint8_t ** p){
     switch(regP&0x0F){
         case 0x06:
         case 0x0E:
-            *p = &(cpu->mem[cpu->reg16[HL]]);
+            *p = &(cpu->workingROM[cpu->reg16[HL]]); //TODO : Check if this is ok to use workingROM and no readFromAddress()
             break;
         case 0x07:
         case 0x0F:
@@ -370,4 +376,14 @@ bool ISR(struct cpuGb* cpu){
     }
 }
 
-//TODO : write execute function // doin't forget to take in account BANK register at $FF50
+bool execute(struct cpuGb * cpu){
+    cpu->workingROM = (cpu->mem[BOOT_ROM_DISABLE]!=0)? cpu->mem: cpu->bootROM;
+    
+    if(cpu->mem[BOOT_ROM_DISABLE] != 0) return true;
+
+    static uint8_t opcode;
+    opcode = cpu->workingROM[(*cpu->pc)++];
+
+    cpu->opTble[opcode](cpu, opcode);
+    return false;
+}

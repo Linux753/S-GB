@@ -106,6 +106,8 @@ struct Ext16bit{
 struct cpuGb{
     uint8_t bootROM[BOOTROM_SIZE];
     uint8_t mem[MEMORY_SIZE]; //Memory size to adjust !!!
+    uint8_t * workingROM; //The actual ROM where reading is done : is bootROM if boot ROM is active, else it's mem
+
     uint8_t reg[REGISTER16_SIZE * 2]; 
     uint16_t * reg16;
 

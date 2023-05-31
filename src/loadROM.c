@@ -38,7 +38,7 @@ int loadBootROM(struct cpuGb* cpu, enum console console){
     switch(console){
         case DMG:
         case MGB:
-            path = "src/dmg_rom.bin";
+            path = "bootROMs/dmg_rom.bin";
             break;
         default:
             path = "Unsupported";
@@ -153,7 +153,11 @@ int loadROM(struct Chip16 * chip16, char * path){
     }
 
     analyseHeader(chip16);
-
+    
+    if(loadBootROM(&chip16->cpu, DMG) != EXIT_SUCCESS){
+        goto endLoadROM;
+    }
+    
     ret = EXIT_SUCCESS;
 endLoadROM:
     return ret;
