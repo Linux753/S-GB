@@ -9,6 +9,12 @@ AC_SUBST([MATHLIB])
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
+AC_ARG_ENABLE([debug],
+            [AS_HELP_STRING([--enable-feature],
+              [enable debug build])],
+            [],
+            [with_readline=no])
+
 AM_PROG_AR
 AC_PROG_RANLIB
 AC_PROG_CC
