@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "emul.h"
 
+//TODO : fiw the fact that we're using mem and not workingMem
 
 void soundSetOn(struct Sound* sound, bool on){
     if(on) *(sound->on) |= 0b10000000;

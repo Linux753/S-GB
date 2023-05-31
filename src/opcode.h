@@ -61,4 +61,7 @@ void opcode_CPL(struct cpuGb* cpu, uint8_t a);
 
 void opcode_ccf(struct cpuGb* cpu, uint8_t a);
 void opcode_DAA(struct cpuGb* cpu, uint8_t a);
+
+void init_opcodeTable(struct cpuGb* cpu);
+
 #endif
