@@ -21,7 +21,7 @@ struct Screen{
 
     uint32_t nextRefresh;
     
-    uint8_t screen[PIXEL_BY_WIDTH][PIXEL_BY_HEIGHT];
+    uint8_t screen[PIXEL_BY_HEIGHT][PIXEL_BY_WIDTH];
 
     //Palette of color used by the GB's palettes (in BGP, OBP0 and OBP1 register)
     SDL_Color palette[PALETTE_SIZE];
@@ -29,7 +29,7 @@ struct Screen{
     struct PPU ppu;
 };
 
-int initScren(struct Screen * screen);
+int initScreen(struct Screen * screen);
 void destroyScreen(struct Screen * screen);
 void renderScreen(struct Screen * screen);
 

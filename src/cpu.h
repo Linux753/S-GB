@@ -5,7 +5,10 @@
 #include <stdint.h>
 #include "emul.h"
 
+//////Special state trigger add////
 #define BOOT_ROM_DISABLE 0xFF50
+#define DMAOAM_TRANSFER_ADD 0xFF46
+
 
 //To get register from the opcode for opcode from 0x00 to 0x3F
 #define getReg8bit1(cpu, a) ((((a)&0XF0) == 0x30)? rnA : ((a)&0x08)? (((a)&0xF0)>>4)*2 + 3 : (((a)&0xF0)>>4)*2 + 2)
@@ -54,6 +57,8 @@ void opcode_ret(struct cpuGb* cpu, uint8_t a);
 
 uint8_t rst_add(struct cpuGb* cpu, uint8_t a);
 bool ISR(struct cpuGb* cpu);
+
+void triggerInterrupt(struct cpuGb* cpu);
 
 bool execute(struct cpuGb * cpu);
 

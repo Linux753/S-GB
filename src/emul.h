@@ -30,6 +30,25 @@
 #define rnH 6
 #define rnL 7
 
+
+//////Special state trigger add////
+#define BOOT_ROM_DISABLE 0xFF50
+#define DMAOAM_TRANSFER_ADD 0xFF46
+
+///////CPU STATE AND TIMING///////
+#define OAMDMA_TRANSFER 0b1
+#define OAMDMA_TRANSFER_LEN 160
+#define PPU_MODE_0 0b10
+#define PPU_MODE_0_LEN 146
+#define PPU_MODE_1 0b100
+#define PPU_MODE_1_LEN 4560
+#define PPU_MODE_2_3 0b1000
+#define PPU_MODE_2_3_LEN 310 
+#define PPU_INC_LY 0b10000
+#define PPU_INC_LY_LEN 456
+
+
+
 #define combineByte(LL, HH) (((uint16_t) (LL)) | (((uint16_t) (HH))<<8))
 #define getLowByte(NN) ((uint8_t) ((NN)&0x00FF))
 #define getHighByte(NN) ((uint8_t) ((NN)>>8))
@@ -39,8 +58,8 @@
 #define writeBits(p, extractor, value) (*(p) = (*(p) & ~(((extractor.mask)>>extractor.dec)<<extractor.dec)) | ((value)<<(extractor.dec)))
 //Extract the bit N of the pointer N, only work on 1 byte data
 #define extractBitsN(p, n) ((*(p)) & (0xFF>>(7-(n))))>>(n)
-
-
+#define setFlag0(p, flag) (*(p) = (*(p) & ~(flag)))
+#define setFlag1(p, flag) (*(p) = (*(p) | flag))
 
 #define CONTROL1_ADD 0xFFF0
 #define CONTROL2_ADD 0xFFF2
@@ -104,6 +123,14 @@ struct Ext16bit{
     uint8_t dec;
 };
 
+struct State{
+    uint64_t OAMDMATranfer;
+    uint64_t ppuMode0;
+    uint64_t ppuMode1;
+    uint64_t ppuMode2;
+    uint64_t ppuIncLY;
+};
+
 struct cpuGb{
     uint8_t bootROM[BOOTROM_SIZE];
     uint8_t mem[MEMORY_SIZE]; //Memory size to adjust !!!
@@ -112,6 +139,9 @@ struct cpuGb{
     uint8_t reg[REGISTER16_SIZE * 2]; 
     uint16_t * reg16;
 
+    struct State stateTime;
+    uint32_t state;
+    uint32_t ticks;
 
     uint16_t * sp;
     uint16_t * pc;

@@ -2,6 +2,7 @@
 #include "emul.h"
 #include "cpu.h"
 #include "opcode.h"
+#include "ppu.h"
 
 struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
 struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
@@ -11,6 +12,14 @@ void initRegister(struct cpuGb* cpu){
     cpu->reg16[PC] = STACK_INIT_ADD;
 }
 
+void initState(struct State * state){
+    state->OAMDMATranfer = 0;
+    state->ppuMode0 = 0;
+    state->ppuMode1 = 0;
+    state->ppuMode2 = 0;
+    state->ppuIncLLY = 0;
+}
+
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
@@ -18,6 +27,9 @@ void initCPU(struct cpuGb * cpu){
     cpu->workingROM = cpu->bootROM;
 
     cpu->reg16 = (uint16_t *) cpu->reg;
+
+    initCPUState(&cpu->stateTime);
+    cpu->ticks = 0;
 
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
     cpu->pc = (uint16_t *) &(cpu->reg16[PC]);
@@ -37,7 +49,7 @@ void initCPU(struct cpuGb * cpu){
 }
 
 uint8_t readNext(struct cpuGb* cpu){
-    return cpu->workingROM[(*(cpu->pc))++];
+    return readFromAdd(cpu, (*(cpu->pc))++);
 }
 
 uint16_t readNext16U(struct cpuGb* cpu){
@@ -47,10 +59,29 @@ uint16_t readNext16U(struct cpuGb* cpu){
 }
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
+    
     cpu->workingROM[add] = value;
+
+    //Checking if it trigger state
+    switch(add){
+        case DMAOAM_TRANSFER_ADD:
+            DMAOAMTransfer(cpu);
+            break;
+
+    }
 }
 
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
+    struct cpuState * state = &cpu->state;
+    
+    //Checking the cpu states
+    if(state->OAMDMATranferBegin != 0 //To avoid trigger of the state at the begining
+    && cpu->ticks-state->OAMDMATranferBegin<state->OAMDMATransferLen){
+        if(!(add>0xFF80 && add<0xFFFE)){ //Can only access HRAM
+            return 0xFF;
+        }
+    }
+    
     return cpu->workingROM[add];
 }
 
@@ -376,6 +407,45 @@ bool ISR(struct cpuGb* cpu){
     }
 }
 
+//Trigger and untrigger event based on timing
+//Make the appropriated function call
+//Update the cpu's state and stateTime variable
+void manageTiming(struct Chip16 * chip16){
+    struct cpuGb* cpu = &chip16->cpu;
+    struct PPU * ppu = &chip16->ppu;
+    struct State * stateTime = &cpu->stateTime;
+
+    if(cpu->ticks-stateTime->OAMDMATranfer>=OAMDMA_TRANSFER_LEN
+    && cpu->state&OAMDMA_TRANSFER){
+        setFlag0(&cpu->state, OAMDMA_TRANSFER);
+    }
+
+    if(cpu->ticks-stateTime->ppuIncLY>=PPU_INC_LY_LEN){
+        PPU_IncLY(cpu, ppu);
+    }
+
+    if(stateTime->ppuMode2 == 0 
+    || (cpu->ticks-stateTime->ppuMode2>=PPU_MODE_2_3_LEN
+    && cpu->state&PPU_MODE_2_3)){
+        setFlag0(&cpu->state, PPU_MODE_2_3);
+        PPUMode0(cpu, ppu);
+    }
+
+    if(cpu->ticks-stateTime->ppuMode1>=PPU_MODE_1_LEN
+    && cpu->state&PPU_MODE_1){
+        setFlag0(&cpu->state, PPU_MODE_1);
+        PPUMode2_3(cpu, ppu);
+        stateTime->ppuMode2 = stateTime->ppuMode1+PPU_MODE_1_LEN;
+    }
+
+    if(cpu->ticks-stateTime->ppuMode0>=PPU_MODE_0_LEN
+    && cpu->state&PPU_MODE_0){
+        setFlag0(&cpu->state, PPU_MODE_0);
+        PPUMode2_3(cpu, ppu);
+        stateTime->ppuMode2 = stateTime->ppuMode0+PPU_MODE_0_LEN;  
+    }
+}
+
 bool execute(struct cpuGb * cpu){
     cpu->workingROM = (cpu->mem[BOOT_ROM_DISABLE]!=0)? cpu->mem: cpu->bootROM;
     
@@ -387,3 +457,4 @@ bool execute(struct cpuGb * cpu){
     cpu->opTble[opcode](cpu, opcode);
     return false;
 }
+//TODO The workingROM is only for the ROM so the 32 first KiB of the mem variable further it's always on the mem variable 
