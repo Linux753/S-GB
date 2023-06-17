@@ -41,7 +41,7 @@ void DMAOAMTransfer(struct cpuGb* cpu){
 } 
 
 void PPU_IncLY(struct cpuGb* cpu, struct PPU * ppu){
-    cpu->stateTime.ppuIncLY = cpu->stateTime.ppuIncLY + PPU_INC_LY_LEN;
+    cpu->stateTime.ppuIncLY += PPU_INC_LY_LEN;
     *ppu->LY = ((*ppu->LY)+1)%154;
 }
 //////////General Tile managment ////////

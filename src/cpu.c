@@ -17,7 +17,8 @@ void initState(struct State * state){
     state->ppuMode0 = 0;
     state->ppuMode1 = 0;
     state->ppuMode2 = 0;
-    state->ppuIncLLY = 0;
+    state->ppuIncLY = 0;
+    state->cpuDiv = 0;
 }
 
 void initCPU(struct cpuGb * cpu){
@@ -62,10 +63,13 @@ void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
     
     cpu->workingROM[add] = value;
 
-    //Checking if it trigger state
+    //Checking if it trigger special event
     switch(add){
         case DMAOAM_TRANSFER_ADD:
             DMAOAMTransfer(cpu);
+            break;
+        case CPU_DIV_ADD:
+            cpu->mem[CPU_DIV_ADD] = 0;
             break;
 
     }
@@ -407,7 +411,39 @@ bool ISR(struct cpuGb* cpu){
     }
 }
 
-//Trigger and untrigger event based on timing
+uint64_t CPU_getTACLen(struct cpuGb* cpu){
+    switch(cpu->mem[CPU_TAC_ADD]&CPU_TAC_CLK){
+        case 0:
+            return 1024;
+            break;
+        case 1:
+            return 16;
+            break;
+        case 2:
+            return 64;
+            break;
+        case 3:
+            return 256;
+            break;
+    }
+}
+
+void CPU_incTIMA(struct cpuGb* cpu){
+    cpu->stateTime.cpuTAC += CPU_getTACLen(cpu);
+    if(cpu->mem[CPU_TIMA_ADD] == 0xFF){
+        cpu->mem[CPU_TIMA_ADD] = cpu->mem[CPU_TMA_ADD];
+        interruptRequest(cpu);
+        return;
+    }
+    cpu->mem[CPU_TIMA_ADD] += 1;
+}
+
+void CPU_incDIV(struct cpuGb* cpu){
+    cpu->mem[CPU_DIV_ADD] +=1;
+    cpu->stateTime.cpuDiv += CPU_DIV_LEN;
+}
+
+//Untrigger event based on timing (untriggering some state can trigger other)
 //Make the appropriated function call
 //Update the cpu's state and stateTime variable
 void manageTiming(struct Chip16 * chip16){
@@ -444,6 +480,17 @@ void manageTiming(struct Chip16 * chip16){
         PPUMode2_3(cpu, ppu);
         stateTime->ppuMode2 = stateTime->ppuMode0+PPU_MODE_0_LEN;  
     }
+
+    //CPU Timer register:
+    if(cpu->ticks-stateTime->cpuDiv>=CPU_DIV_LEN){
+        CPU_incDIV(cpu);
+    }
+
+    if(cpu->mem[CPU_TAC_ADD]&CPU_TAC_TIMA_EN
+    &&cpu->ticks-stateTime->cpuTAC>=CPU_getTACLen(cpu)){
+        CPU_incTIMA(cpu);
+    }
+    //TODO : Check timing is it tick-stateTime or the opposite?
 }
 
 bool execute(struct cpuGb * cpu){

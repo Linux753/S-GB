@@ -35,7 +35,7 @@
 #define BOOT_ROM_DISABLE 0xFF50
 #define DMAOAM_TRANSFER_ADD 0xFF46
 
-///////CPU STATE AND TIMING///////
+///////CPU STATE AND TIMING, LEN given in T-state, one T-State is a tick on the DMG-CPU clock///////
 #define OAMDMA_TRANSFER 0b1
 #define OAMDMA_TRANSFER_LEN 160
 #define PPU_MODE_0 0b10
@@ -43,9 +43,12 @@
 #define PPU_MODE_1 0b100
 #define PPU_MODE_1_LEN 4560
 #define PPU_MODE_2_3 0b1000
-#define PPU_MODE_2_3_LEN 310 
-#define PPU_INC_LY 0b10000
+#define PPU_MODE_2_3_LEN 310
 #define PPU_INC_LY_LEN 456
+#define CPU_DIV_LEN 256
+#define CPU_TAC_TIMA_EN 0b00000100
+#define CPU_TAC_CLK 0x03
+#define CPU_TAC_1 16
 
 
 
@@ -129,6 +132,8 @@ struct State{
     uint64_t ppuMode1;
     uint64_t ppuMode2;
     uint64_t ppuIncLY;
+    uint64_t cpuDiv;
+    uint64_t cpuTAC;
 };
 
 struct cpuGb{
