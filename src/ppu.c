@@ -144,7 +144,7 @@ void renderScanlineSprites(struct cpuGb* cpu, struct PPU* ppu, uint8_t y){
 /////////Background and windows rendering//////////
 
 void renderBackground(struct cpuGb* cpu, struct PPU * ppu){
-    
+
 }
 
 //////////Global rendering (PPU Mode) /////////////
