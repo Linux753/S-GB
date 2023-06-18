@@ -48,7 +48,6 @@
 #define CPU_DIV_LEN 256
 #define CPU_TAC_TIMA_EN 0b00000100
 #define CPU_TAC_CLK 0x03
-#define CPU_TAC_1 16
 
 
 

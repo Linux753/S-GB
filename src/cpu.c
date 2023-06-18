@@ -17,8 +17,9 @@ void initState(struct State * state){
     state->ppuMode0 = 0;
     state->ppuMode1 = 0;
     state->ppuMode2 = 0;
-    state->ppuIncLY = 0;
-    state->cpuDiv = 0;
+    state->ppuIncLY = PPU_INC_LY_LEN;
+    state->cpuDiv = CPU_DIV_LEN;
+    state->cpuTAC = 1024;
 }
 
 void initCPU(struct cpuGb * cpu){
@@ -78,13 +79,13 @@ void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
     struct cpuState * state = &cpu->state;
     
-    //Checking the cpu states
+    /*//Checking the cpu states
     if(state->OAMDMATranferBegin != 0 //To avoid trigger of the state at the begining
     && cpu->ticks-state->OAMDMATranferBegin<state->OAMDMATransferLen){
         if(!(add>0xFF80 && add<0xFFFE)){ //Can only access HRAM
             return 0xFF;
         }
-    }
+    }*/
     
     return cpu->workingROM[add];
 }
@@ -430,6 +431,7 @@ uint64_t CPU_getTACLen(struct cpuGb* cpu){
 
 void CPU_incTIMA(struct cpuGb* cpu){
     cpu->stateTime.cpuTAC += CPU_getTACLen(cpu);
+
     if(cpu->mem[CPU_TIMA_ADD] == 0xFF){
         cpu->mem[CPU_TIMA_ADD] = cpu->mem[CPU_TMA_ADD];
         interruptRequest(cpu);
@@ -450,44 +452,45 @@ void manageTiming(struct Chip16 * chip16){
     struct cpuGb* cpu = &chip16->cpu;
     struct PPU * ppu = &chip16->ppu;
     struct State * stateTime = &cpu->stateTime;
+    struct Screen * screen = &chip16->screen;
 
-    if(cpu->ticks-stateTime->OAMDMATranfer>=OAMDMA_TRANSFER_LEN
+    if(stateTime->OAMDMATranfer-cpu->ticks<=0
     && cpu->state&OAMDMA_TRANSFER){
         setFlag0(&cpu->state, OAMDMA_TRANSFER);
     }
 
-    if(cpu->ticks-stateTime->ppuIncLY>=PPU_INC_LY_LEN){
+    if(stateTime->ppuIncLY-cpu->ticks<=0){
         PPU_IncLY(cpu, ppu);
     }
 
     if(stateTime->ppuMode2 == 0 
-    || (cpu->ticks-stateTime->ppuMode2>=PPU_MODE_2_3_LEN
+    || (stateTime->ppuMode2-cpu->ticks<=0
     && cpu->state&PPU_MODE_2_3)){
         setFlag0(&cpu->state, PPU_MODE_2_3);
         PPUMode0(cpu, ppu);
     }
 
-    if(cpu->ticks-stateTime->ppuMode1>=PPU_MODE_1_LEN
+    if(stateTime->ppuMode1-cpu->ticks<=0
     && cpu->state&PPU_MODE_1){
         setFlag0(&cpu->state, PPU_MODE_1);
-        PPUMode2_3(cpu, ppu);
+        PPUMode2_3(cpu, ppu, screen);
         stateTime->ppuMode2 = stateTime->ppuMode1+PPU_MODE_1_LEN;
     }
 
-    if(cpu->ticks-stateTime->ppuMode0>=PPU_MODE_0_LEN
+    if(stateTime->ppuMode0-cpu->ticks<=0
     && cpu->state&PPU_MODE_0){
         setFlag0(&cpu->state, PPU_MODE_0);
-        PPUMode2_3(cpu, ppu);
+        PPUMode2_3(cpu, ppu, screen);
         stateTime->ppuMode2 = stateTime->ppuMode0+PPU_MODE_0_LEN;  
     }
 
     //CPU Timer register:
-    if(cpu->ticks-stateTime->cpuDiv>=CPU_DIV_LEN){
+    if(stateTime->cpuDiv-cpu->ticks<=0){
         CPU_incDIV(cpu);
     }
 
     if(cpu->mem[CPU_TAC_ADD]&CPU_TAC_TIMA_EN
-    &&cpu->ticks-stateTime->cpuTAC>=CPU_getTACLen(cpu)){
+    &&stateTime->cpuTAC-cpu->ticks<=0){
         CPU_incTIMA(cpu);
     }
     //TODO : Check timing is it tick-stateTime or the opposite?

@@ -29,7 +29,7 @@ void initPPU(struct PPU * ppu, struct cpuGb* cpu){
 void DMAOAMTransfer(struct cpuGb* cpu){
     //It doesn't use readFrom add because it's not a cpu operation
 
-    cpu->stateTime.OAMDMATranfer = cpu->ticks;
+    cpu->stateTime.OAMDMATranfer = cpu->ticks + OAMDMA_TRANSFER_LEN;
     setFlag1(&cpu->state, OAMDMA_TRANSFER);
 
     uint16_t srcAdd =  ((uint16_t) cpu->mem[DMAOAM_TRANSFER_ADD])<<8;
