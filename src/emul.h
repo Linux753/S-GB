@@ -63,9 +63,6 @@
 #define setFlag0(p, flag) (*(p) = (*(p) & ~(flag)))
 #define setFlag1(p, flag) (*(p) = (*(p) | flag))
 
-#define CONTROL1_ADD 0xFFF0
-#define CONTROL2_ADD 0xFFF2
-#define INPUT_NB 16
 
 
 
@@ -100,6 +97,15 @@
 #define SOUND_CH4FREQ 0xFF22
 #define SOUND_CH4CTRL 0xFF23
 
+/////////Control definition///////
+#define CONTROL_NB 8
+#define CONTROL_JYP_ADD 0xFF00
+#define CONTROL_SELECT_ACTION 0b00100000
+#define CONTROL_SELECT_DIR 0b00010000
+#define CONTROL_DOWN_START 0b00001000
+#define CONTROL_UP_SELECT 0b00000100
+#define CONTROL_LEFT_B 0b00000010
+#define CONTROL_RIGHT_A 0b00000001
 
 
 #include <stdlib.h>
@@ -172,8 +178,7 @@ struct Control{
 
     SDL_Scancode keyTable[INPUT_NB];
 
-    uint16_t * control1;
-    uint16_t * control2;
+    uint8_t * controlP;
 };
 
 struct DACChannel{ //Structure used by Pa to produce sound
