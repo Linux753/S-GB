@@ -359,7 +359,7 @@ struct MetadataROM{
 
 };
 
-struct Chip16{
+struct GB{
     struct cpuGb cpu;
     struct Control control;
 

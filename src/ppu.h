@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include "screen.h"
+#include "emul.h"
 
 /////////////Screen constant and register address///////////////////
 //#define SPF 16 //Ms by frame
