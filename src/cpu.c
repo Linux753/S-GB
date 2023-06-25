@@ -30,7 +30,7 @@ void initCPU(struct cpuGb * cpu){
 
     cpu->reg16 = (uint16_t *) cpu->reg;
 
-    initCPUState(&cpu->stateTime);
+    initState(&cpu->stateTime);
     cpu->ticks = 0;
 
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
@@ -77,7 +77,7 @@ void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
 }
 
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
-    struct cpuState * state = &cpu->state;
+    struct State * state = &(cpu->stateTime);
     
     /*//Checking the cpu states
     if(state->OAMDMATranferBegin != 0 //To avoid trigger of the state at the begining
@@ -455,8 +455,8 @@ void manageTiming(struct GB * gb){
     struct Screen * screen = &gb->screen;
 
     if(stateTime->OAMDMATranfer-cpu->ticks<=0
-    && cpu->state&OAMDMA_TRANSFER){
-        setFlag0(&cpu->state, OAMDMA_TRANSFER);
+    && cpu->state&PPU_OAMDMA_TRANSFER){
+        setFlag0(&cpu->state, PPU_OAMDMA_TRANSFER);
     }
 
     if(stateTime->ppuIncLY-cpu->ticks<=0){

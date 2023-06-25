@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include "ppu.h"
 
+//#define SPF 16 //Ms by frame
+//#define FREQUENCY 1000 //Expressed in ms^-1
 #define INIT_PIXEL_DIM 5
 #define PIXEL_BY_WIDTH 160
 #define PIXEL_BY_HEIGHT 144
@@ -25,8 +27,6 @@ struct Screen{
 
     //Palette of color used by the GB's palettes (in BGP, OBP0 and OBP1 register)
     SDL_Color palette[PALETTE_SIZE];
-
-    struct PPU ppu;
 };
 
 int initScreen(struct Screen * screen);

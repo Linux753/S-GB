@@ -53,7 +53,9 @@ bool updateEvent(struct Control * control){
     return ret;
 }
 
-
+//Update the control structure
+//So the control register
+//And the window management event (temporary)
 void updateControl(struct GB * gb){
     struct Control * control = &(gb->control);
     //Updating the SDL Event 

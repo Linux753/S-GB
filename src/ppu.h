@@ -6,11 +6,9 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include "screen.h"
-#include "emul.h"
+#include "utils.h"
 
-/////////////Screen constant and register address///////////////////
-//#define SPF 16 //Ms by frame
-//#define FREQUENCY 1000 //Expressed in ms^-1
+/////////////MACRO DEFINITION///////////////////
 #define PPU_OAM_ADD 0xFE00
 #define PPU_OAM_SIZE 0x9F
 #define PPU_OAM_MAX_SPRITE 40
@@ -38,6 +36,7 @@
 #define STAT_LYC 0b00000100
 #define STAT_MODE 0b00000011
 
+////////////STRUCTURE DEFINITION////////////
 enum LCDCBit{
     BG_on=0, //Activate the window
     OBJ_on, //Activate the objects
@@ -88,8 +87,7 @@ struct PPU{
     struct Ext8bit mode;
 };
 
-
-
+/////////////FUNCTION DEFINITION//////////
 void PPURenderScreen(struct Screen * screen);
 void DMAOAMTransfer(struct cpuGb* cpu);
 void PPUMode0(struct cpuGb* cpu, struct PPU* ppu);
