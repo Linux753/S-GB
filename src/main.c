@@ -8,18 +8,18 @@
 int main(int argc, char ** argv){
     srand(time(NULL));
 
-    struct Chip16 chip16;
+    struct GB gb;
 
-    initCPU(&(chip16.cpu));
+    initCPU(&(gb.cpu));
 
-    loadROM(&chip16, "testROM/tetris.gb");
+    loadROM(&gb, "testROM/tetris.gb");
 
-    printHeaderInfo(&(chip16.metadataROM));
+    printHeaderInfo(&(gb.metadataROM));
 
     int i=0;
-    while(!execute(&(chip16.cpu))){
-        printf("%x, %d\n", *chip16.cpu.pc, chip16.cpu.mem[BOOT_ROM_DISABLE]);
-        if(*chip16.cpu.pc==0x28){
+    while(!execute(&(gb.cpu))){
+        printf("%x, %d\n", *gb.cpu.pc, gb.cpu.mem[BOOT_ROM_DISABLE]);
+        if(*gb.cpu.pc==0x28){
             printf("Here");
         }
     }

@@ -1,6 +1,6 @@
 bin_PROGRAMS = sgb
 
-sgb_SOURCES = cpu.c main.c opcode.c sound.c cpu.h emul.h opcode.h loadROM.c loadROM.h
+sgb_SOURCES = cpu.c main.c opcode.c cpu.h emul.h emul.c opcode.h loadROM.c loadROM.h event.c event.h utils.h
 sgb_LDADD = $(MATHLIB) -lSDL2main -lSDL2
 
 noinst_LIBRARIES = libsgb.a

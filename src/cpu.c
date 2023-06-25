@@ -2,6 +2,7 @@
 #include "emul.h"
 #include "cpu.h"
 #include "opcode.h"
+#include "ppu.h"
 
 struct Ext8bit hiBit = {.mask = 0b10000000, .dec=7};
 struct Ext8bit lowBit ={.mask = 0b00000001, .dec = 0};
@@ -11,6 +12,16 @@ void initRegister(struct cpuGb* cpu){
     cpu->reg16[PC] = STACK_INIT_ADD;
 }
 
+void initState(struct State * state){
+    state->OAMDMATranfer = 0;
+    state->ppuMode0 = 0;
+    state->ppuMode1 = 0;
+    state->ppuMode2 = 0;
+    state->ppuIncLY = PPU_INC_LY_LEN;
+    state->cpuDiv = CPU_DIV_LEN;
+    state->cpuTAC = 1024;
+}
+
 void initCPU(struct cpuGb * cpu){
     memset(cpu->mem, 0, sizeof(cpu->mem));
     memset(cpu->reg, 0, sizeof(cpu->reg));
@@ -18,6 +29,9 @@ void initCPU(struct cpuGb * cpu){
     cpu->workingROM = cpu->bootROM;
 
     cpu->reg16 = (uint16_t *) cpu->reg;
+
+    initState(&cpu->stateTime);
+    cpu->ticks = 0;
 
     cpu->sp = (uint16_t *) &(cpu->reg16[SP]);
     cpu->pc = (uint16_t *) &(cpu->reg16[PC]);
@@ -37,7 +51,7 @@ void initCPU(struct cpuGb * cpu){
 }
 
 uint8_t readNext(struct cpuGb* cpu){
-    return cpu->workingROM[(*(cpu->pc))++];
+    return readFromAdd(cpu, (*(cpu->pc))++);
 }
 
 uint16_t readNext16U(struct cpuGb* cpu){
@@ -48,9 +62,29 @@ uint16_t readNext16U(struct cpuGb* cpu){
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
     cpu->workingROM[add] = value;
+
+    //Checking if it trigger special event
+    switch(add){
+        case DMAOAM_TRANSFER_ADD:
+            DMAOAMTransfer(cpu);
+            break;
+        case CPU_DIV_ADD:
+            cpu->mem[CPU_DIV_ADD] = 0;
+            break;
+
+    }
 }
 
 uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
+    struct State * state = &(cpu->stateTime);
+    
+    /*//Checking the cpu states
+    if(state->OAMDMATranferBegin != 0 //To avoid trigger of the state at the begining
+    && cpu->ticks-state->OAMDMATranferBegin<state->OAMDMATransferLen){
+        if(!(add>0xFF80 && add<0xFFFE)){ //Can only access HRAM
+            return 0xFF;
+        }
+    }*/
     return cpu->workingROM[add];
 }
 
@@ -376,6 +410,90 @@ bool ISR(struct cpuGb* cpu){
     }
 }
 
+uint64_t CPU_getTACLen(struct cpuGb* cpu){
+    switch(cpu->mem[CPU_TAC_ADD]&CPU_TAC_CLK){
+        case 0:
+            return 1024;
+            break;
+        case 1:
+            return 16;
+            break;
+        case 2:
+            return 64;
+            break;
+        case 3:
+            return 256;
+            break;
+    }
+}
+
+void CPU_incTIMA(struct cpuGb* cpu){
+    cpu->stateTime.cpuTAC += CPU_getTACLen(cpu);
+
+    if(cpu->mem[CPU_TIMA_ADD] == 0xFF){
+        cpu->mem[CPU_TIMA_ADD] = cpu->mem[CPU_TMA_ADD];
+        interruptRequest(cpu);
+        return;
+    }
+    cpu->mem[CPU_TIMA_ADD] += 1;
+}
+
+void CPU_incDIV(struct cpuGb* cpu){
+    cpu->mem[CPU_DIV_ADD] +=1;
+    cpu->stateTime.cpuDiv += CPU_DIV_LEN;
+}
+
+//Untrigger event based on timing (untriggering some state can trigger other)
+//Make the appropriated function call
+//Update the cpu's state and stateTime variable
+void manageTiming(struct GB * gb){
+    struct cpuGb* cpu = &gb->cpu;
+    struct PPU * ppu = &gb->ppu;
+    struct State * stateTime = &cpu->stateTime;
+    struct Screen * screen = &gb->screen;
+
+    if(stateTime->OAMDMATranfer-cpu->ticks<=0
+    && cpu->state&PPU_OAMDMA_TRANSFER){
+        setFlag0(&cpu->state, PPU_OAMDMA_TRANSFER);
+    }
+
+    if(stateTime->ppuIncLY-cpu->ticks<=0){
+        PPU_IncLY(cpu, ppu);
+    }
+
+    if(stateTime->ppuMode2 == 0 
+    || (stateTime->ppuMode2-cpu->ticks<=0
+    && cpu->state&PPU_MODE_2_3)){
+        setFlag0(&cpu->state, PPU_MODE_2_3);
+        PPUMode0(cpu, ppu);
+    }
+
+    if(stateTime->ppuMode1-cpu->ticks<=0
+    && cpu->state&PPU_MODE_1){
+        setFlag0(&cpu->state, PPU_MODE_1);
+        PPUMode2_3(cpu, ppu, screen);
+        stateTime->ppuMode2 = stateTime->ppuMode1+PPU_MODE_1_LEN;
+    }
+
+    if(stateTime->ppuMode0-cpu->ticks<=0
+    && cpu->state&PPU_MODE_0){
+        setFlag0(&cpu->state, PPU_MODE_0);
+        PPUMode2_3(cpu, ppu, screen);
+        stateTime->ppuMode2 = stateTime->ppuMode0+PPU_MODE_0_LEN;  
+    }
+
+    //CPU Timer register:
+    if(stateTime->cpuDiv-cpu->ticks<=0){
+        CPU_incDIV(cpu);
+    }
+
+    if(cpu->mem[CPU_TAC_ADD]&CPU_TAC_TIMA_EN
+    &&stateTime->cpuTAC-cpu->ticks<=0){
+        CPU_incTIMA(cpu);
+    }
+    //TODO : Check timing is it tick-stateTime or the opposite?
+}
+
 bool execute(struct cpuGb * cpu){
     cpu->workingROM = (cpu->mem[BOOT_ROM_DISABLE]!=0)? cpu->mem: cpu->bootROM;
     
@@ -387,3 +505,5 @@ bool execute(struct cpuGb * cpu){
     cpu->opTble[opcode](cpu, opcode);
     return false;
 }
+//TODO The workingROM is only for the ROM so the 32 first KiB of the mem variable further it's always on the mem variable 
+

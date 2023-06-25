@@ -127,15 +127,16 @@ unsigned int getNbRAMBank(uint8_t * rom){
     }
 }
 
-void analyseHeader(struct Chip16 * chip16){
-    struct MetadataROM * metadata = &(chip16->metadataROM);
+void analyseHeader(struct GB * gb){
+    struct MetadataROM * metadata = &(gb->metadataROM);
     
-    memcpy(metadata->title, &(chip16->cpu.mem[ROM_HEADER_TITLE]), 16);
+    memcpy(metadata->title, &(gb->cpu.mem[ROM_HEADER_TITLE]), 16);
     metadata->title[16] = '\0';
 
-    metadata->mbc = getMBC(chip16->cpu.mem);
-    metadata->ROMBank = getNbROMBank(chip16->cpu.mem);
-    metadata->RAMBank = getNbRAMBank(chip16->cpu.mem);
+    metadata->mbc = getMBC(gb->cpu.mem);
+    metadata->ROMBank = getNbROMBank(gb->cpu.mem);
+    metadata->RAMBank = getNbRAMBank(gb->cpu.mem);
+
 }
 
 void printHeaderInfo(struct MetadataROM * data){
@@ -146,15 +147,15 @@ void printHeaderInfo(struct MetadataROM * data){
 
 }
 
-int loadROM(struct Chip16 * chip16, char * path){
+int loadROM(struct GB * gb, char * path){
     int ret = EXIT_FAILURE;
-    if(loadBytes(path, chip16->cpu.mem, MIN_ROM_SIZE) != EXIT_SUCCESS){
+    if(loadBytes(path, gb->cpu.mem, MIN_ROM_SIZE) != EXIT_SUCCESS){
         goto endLoadROM;
     }
 
-    analyseHeader(chip16);
+    analyseHeader(gb);
     
-    if(loadBootROM(&chip16->cpu, DMG) != EXIT_SUCCESS){
+    if(loadBootROM(&gb->cpu, DMG) != EXIT_SUCCESS){
         goto endLoadROM;
     }
     
