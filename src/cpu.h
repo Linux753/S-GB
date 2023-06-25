@@ -56,6 +56,7 @@
 #define REGISTER16_SIZE 6
 #define BOOTROM_SIZE 0x0100 
 #define STACK_INIT_ADD 0xFFFE //Source : Nintendo DMG-01 Gameboy console manual page 64
+
 //To get register from the opcode for opcode from 0x00 to 0x3F
 #define getReg8bit1(cpu, a) ((((a)&0XF0) == 0x30)? rnA : ((a)&0x08)? (((a)&0xF0)>>4)*2 + 3 : (((a)&0xF0)>>4)*2 + 2)
 #define getReg16bit1(cpu, a) (((0xF0&(a))>>4) + 1)
@@ -147,7 +148,6 @@ uint8_t rst_add(struct cpuGb* cpu, uint8_t a);
 bool ISR(struct cpuGb* cpu);
 
 void triggerInterrupt(struct cpuGb* cpu);
-
 bool execute(struct cpuGb * cpu);
 
 #endif 

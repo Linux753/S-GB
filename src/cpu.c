@@ -61,7 +61,6 @@ uint16_t readNext16U(struct cpuGb* cpu){
 }
 
 void writeToAdd(struct cpuGb* cpu, uint16_t add, uint8_t value){
-    
     cpu->workingROM[add] = value;
 
     //Checking if it trigger special event
@@ -86,7 +85,6 @@ uint8_t readFromAdd(struct cpuGb* cpu, uint16_t add){
             return 0xFF;
         }
     }*/
-    
     return cpu->workingROM[add];
 }
 
@@ -508,3 +506,4 @@ bool execute(struct cpuGb * cpu){
     return false;
 }
 //TODO The workingROM is only for the ROM so the 32 first KiB of the mem variable further it's always on the mem variable 
+

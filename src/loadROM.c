@@ -136,6 +136,7 @@ void analyseHeader(struct GB * gb){
     metadata->mbc = getMBC(gb->cpu.mem);
     metadata->ROMBank = getNbROMBank(gb->cpu.mem);
     metadata->RAMBank = getNbRAMBank(gb->cpu.mem);
+
 }
 
 void printHeaderInfo(struct MetadataROM * data){
