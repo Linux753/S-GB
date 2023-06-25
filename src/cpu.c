@@ -448,11 +448,11 @@ void CPU_incDIV(struct cpuGb* cpu){
 //Untrigger event based on timing (untriggering some state can trigger other)
 //Make the appropriated function call
 //Update the cpu's state and stateTime variable
-void manageTiming(struct Chip16 * chip16){
-    struct cpuGb* cpu = &chip16->cpu;
-    struct PPU * ppu = &chip16->ppu;
+void manageTiming(struct GB * gb){
+    struct cpuGb* cpu = &gb->cpu;
+    struct PPU * ppu = &gb->ppu;
     struct State * stateTime = &cpu->stateTime;
-    struct Screen * screen = &chip16->screen;
+    struct Screen * screen = &gb->screen;
 
     if(stateTime->OAMDMATranfer-cpu->ticks<=0
     && cpu->state&OAMDMA_TRANSFER){

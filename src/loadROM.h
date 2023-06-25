@@ -15,7 +15,7 @@
 #define ROM_HEADER_RAM_SIZE 0x149
 #define ROM_HEADER_OLD_LICENSEE_CODE 0x14B
 
-int loadROM(struct Chip16 * chip16, char * path);
+int loadROM(struct GB * gb, char * path);
 void printHeaderInfo(struct MetadataROM * data);
 
 
