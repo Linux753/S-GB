@@ -91,7 +91,8 @@ void resizeWindow(struct Screen * screen){
     SDL_SetWindowSize(screen->window, screen->pixelWidth * PIXEL_BY_WIDTH, screen->pixelHeight * PIXEL_BY_HEIGHT);
 }
 
-void analyseEvent(struct GB * gb){ //Analyze event relevent to the emulator itself
+//Analyze event relevent to UI of the emulator
+void analyseEvent(struct GB * gb){ 
     if(gb->control.resizeWindow == SDL_TRUE){
         resizeWindow(&(gb->screen));
     }

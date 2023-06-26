@@ -37,7 +37,7 @@ int initScreen(struct Screen * screen){
 
     memset(screen->screen, 0, sizeof(screen));
 
-    initSDL(screen);
+    return initSDL(screen);
 }
 
 int SetRenderPaletteColor(SDL_Renderer * renderer, struct Screen * screen, uint8_t color){ //Done

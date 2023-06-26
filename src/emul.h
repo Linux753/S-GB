@@ -25,6 +25,8 @@ struct GB{
 //////////FUNCTION TAKING GB'S POINTER AS PARAMETERS///////////
 void updateControl(struct GB * gb);
 int loadROM(struct GB * gb, char * path);
-
+int initGB(struct GB* gb);
+void emulate(struct GB* gb);
+void quitGB(struct GB* gb);
 #endif
 
