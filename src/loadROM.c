@@ -147,6 +147,7 @@ void printHeaderInfo(struct MetadataROM * data){
 
 }
 
+//Call after initializing the gb
 int loadROM(struct GB * gb, char * path){
     int ret = EXIT_FAILURE;
     if(loadBytes(path, gb->cpu.mem, MIN_ROM_SIZE) != EXIT_SUCCESS){
@@ -155,6 +156,8 @@ int loadROM(struct GB * gb, char * path){
 
     analyseHeader(gb);
     
+
+    //TODO Change the DMG
     if(loadBootROM(&gb->cpu, DMG) != EXIT_SUCCESS){
         goto endLoadROM;
     }
